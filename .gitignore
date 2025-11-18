@@ -1,0 +1,125 @@
+﻿
+# -----------------------------
+#  GENERAL
+# -----------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+.DS_Store
+Thumbs.db
+
+# env files
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# OS stuff
+.DS_Store?
+.desktop
+ehthumbs.db
+Icon?
+.idea/
+.vscode/
+*.swp
+
+# -----------------------------
+#  MONOREPO WORKSPACES
+# -----------------------------
+**/node_modules/
+**/.cache/
+**/dist/
+**/build/
+**/.turbo/
+**/.parcel-cache/
+
+# -----------------------------
+#  BACKEND (Node / Express / SQL)
+# -----------------------------
+backend/dist/
+backend/build/
+backend/tmp/
+backend/coverage/
+
+# -----------------------------
+#  MOBILE (Expo / React Native)
+# -----------------------------
+# Expo local state
+.expo/
+mobile/.expo/
+mobile/.expo-shared/
+mobile/.expo/*
+
+# Expo web build
+mobile/web-build/
+
+# Expo TS config cache
+mobile/.expo-shared/
+
+# Metro & RN caches
+mobile/.metro/
+mobile/.metro-cache/
+mobile/metro-cache/
+mobile/android/
+mobile/ios/
+
+# React Native config
+*.packager
+*.iml
+*.keystore
+*.jks
+*.p12
+*.key
+*.mobileprovision
+*.app.dSYM.zip
+*.app.dSYM
+
+# Gradle
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/local.properties
+
+# Xcode
+mobile/ios/Pods/
+mobile/ios/build/
+mobile/ios/*.xcworkspace
+mobile/ios/*.xcodeproj/project.xcworkspace/
+mobile/ios/*.xcodeproj/xcuserdata/
+
+# -----------------------------
+#  TYPESCRIPT
+# -----------------------------
+**/*.tsbuildinfo
+.mobile.tsc*
+backend/*.tsbuildinfo
+
+# -----------------------------
+#  OPTIONAL
+# -----------------------------
+coverage/
+.cache/
+temp/
+tmp/
+# Archivos y carpetas del sistema
+*.lnk
+*.db
+*.exe
+*.lock
+*.ini
+AppData/
+Documents/
+Downloads/
+Music/
+Pictures/
+Videos/
+OneDrive/
