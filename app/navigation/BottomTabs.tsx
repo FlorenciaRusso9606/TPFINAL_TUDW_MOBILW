@@ -6,6 +6,10 @@ import MessagesScreen from "../screens/MessagesScreen";
 import CreatePostScreen from "../screens/CreatePostScreen";
 import SearchScreen from "../screens/SearchScreen"; 
 import ProfileStack from "app/navigation/ProfileStack";
+import type { LucideProps } from "lucide-react-native";
+import MessagesStack from "./MessagesStack";
+import ProfileScreen from "../screens/ProfileScreen";
+
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabs() {
@@ -68,7 +72,7 @@ export default function BottomTabs() {
       {/* MENSAJES */}
       <Tab.Screen
         name="Messages"
-        component={MessagesScreen}
+        component={MessagesStack}
         options={{
           tabBarLabel: "Mensajes",
           tabBarIcon: ({ color, size }) => (
