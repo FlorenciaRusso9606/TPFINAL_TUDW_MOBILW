@@ -10,7 +10,7 @@ const Input : React.FC<InputProps> = ({label, style, errors, ...rest}) =>{
     <View style={{marginBottom: theme.spacing(2)}}>
         <Text style={[theme.typography.caption]}>{label}</Text>
         <TextInput
-        style={[theme.components.inputBase, { color: theme.colors.textPrimary }, style]}
+        style={[theme.components.inputBase, { color: theme.colors.primary }, style]}
         placeholderTextColor={theme.colors.textSecondary}
         {...rest}
         />

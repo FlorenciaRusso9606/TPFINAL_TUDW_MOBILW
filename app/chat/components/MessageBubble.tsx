@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
-import { View, Text, Image } from 'react-native';
+import { useMemo } from "react";
+import { View, Text, Image } from "react-native";
+import { useThemeContext } from "../../../context/ThemeContext";
 
 type Message = {
   id: string;
   sender_id: string;
   content?: string;
-  text?: string; 
+  text?: string;
   image?: string;
   created_at: string;
 };
@@ -17,6 +18,8 @@ export default function MessageBubble({
   message: Message;
   currentUserId: string;
 }) {
+  const { theme } = useThemeContext();
+
   const mine = message.sender_id === currentUserId;
 
   const formattedDate = useMemo(
@@ -35,21 +38,32 @@ export default function MessageBubble({
       style={{
         alignSelf: mine ? "flex-end" : "flex-start",
         maxWidth: "75%",
-        marginVertical: 4,
-        marginHorizontal: 8,
+        marginVertical: theme.spacing(0.5),
+        marginHorizontal: theme.spacing(1),
       }}
     >
       <View
         style={{
-          backgroundColor: mine ? "#cfe9ff" : "#eee",
-          padding: 10,
-          borderRadius: 10,
-          borderBottomRightRadius: mine ? 0 : 10,
-          borderBottomLeftRadius: mine ? 10 : 0,
+          backgroundColor: mine
+            ? theme.colors.primary
+            : theme.colors.surfaceVariant ?? theme.colors.surface,
+
+          padding: theme.spacing(1.25),
+          borderRadius: theme.radius.md,
+
+          borderBottomRightRadius: mine ? 0 : theme.radius.md,
+          borderBottomLeftRadius: mine ? theme.radius.md : 0,
         }}
       >
-       
-        {!!textToShow && <Text>{textToShow}</Text>}
+        {!!textToShow && (
+          <Text
+            style={{
+              color: mine ? theme.colors.onPrimary : theme.colors.text,
+            }}
+          >
+            {textToShow}
+          </Text>
+        )}
 
         {message.image ? (
           <Image
@@ -57,8 +71,8 @@ export default function MessageBubble({
             style={{
               width: 200,
               height: 200,
-              borderRadius: 8,
-              marginTop: 6,
+              borderRadius: theme.radius.md,
+              marginTop: theme.spacing(0.5),
             }}
           />
         ) : null}
@@ -66,8 +80,8 @@ export default function MessageBubble({
         <Text
           style={{
             fontSize: 11,
-            marginTop: 4,
-            color: "#666",
+            marginTop: theme.spacing(0.5),
+            color: theme.colors.textSecondary,
             alignSelf: "flex-end",
           }}
         >

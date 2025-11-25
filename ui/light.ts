@@ -10,11 +10,17 @@ export const lightTheme = {
 
     
     primary: "#C2185B",
+     outline: "#C2185B",
     onPrimary: "#FFFFFF",
 
     secondary: "#6C5CE7",
     onSecondary: "#FFFFFF",
+    
+mine: "#cfe9ff",
+    mineText: "#003b73",
 
+    incoming: "#eeeeee",
+    incomingText: "#222222",
     background: "#FFFFFF",
     surface: "#FFFFFF",
 
@@ -27,7 +33,7 @@ export const lightTheme = {
     success: "#16A34A",
     warning: "#F59E0B",
     danger: "#DC2626",
-    info: "#2563EB",
+    info: "#15161aff",
   },
 
   components: {

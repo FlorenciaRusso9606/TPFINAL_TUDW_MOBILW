@@ -15,7 +15,7 @@ export default function PostList({ initialMode, username  }: PostListProps) {
 
   if (loading) return <Text>Cargando posts...</Text>;
   if (error) return <Text style={{ color: theme.colors.error }}>{error}</Text>;
-  if (posts.length === 0) return <Text>No hay posts todavía</Text>;
+  if (posts.length === 0) return <Text style={{ color: theme.colors.primary }}>No hay posts todavía</Text>;
 
   return (
     <View style={styles.list}>

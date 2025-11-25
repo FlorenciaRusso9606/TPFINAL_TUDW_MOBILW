@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Button, Image, Modal, StyleSheet, Dimensions, PanResponder, Animated, Text, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-
+import { useThemeContext } from 'context/ThemeContext';
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const CROP_SIZE = 300; // tamaño del viewport cuadrado en px (ajustable)
 
@@ -10,7 +10,7 @@ export default function ProfilePhotoPicker({ onComplete, renderTrigger }: { onCo
   const [picked, setPicked] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [imgMeta, setImgMeta] = useState<{ width: number; height: number } | null>(null);
-
+  const {theme} = useThemeContext()
   const pan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const scale = useRef(new Animated.Value(1)).current;
   const lastScale = useRef(1);
@@ -178,37 +178,68 @@ export default function ProfilePhotoPicker({ onComplete, renderTrigger }: { onCo
       ) : (
         <Button title="Seleccionar foto" onPress={pickImage} />
       )}
+
       <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
-          <Text style={{ marginBottom: 8 }}>Mueve y haz zoom para recortar</Text>
+        <View
+          style={[
+            styles.modalContainer,
+            { backgroundColor: theme.colors.background },
+          ]}
+        >
+          <Text style={{ marginBottom: 8, color: theme.colors.text }}>
+            Mueve y haz zoom para recortar
+          </Text>
+
           <View style={styles.cropContainer}>
-            <View style={styles.viewport}>
+            <View
+              style={[
+                styles.viewport,
+                { backgroundColor: theme.colors.surface },
+              ]}
+            >
               {picked && (
                 <Animated.View
                   style={{
-                    transform: [{ translateX: pan.x }, { translateY: pan.y }, { scale: scale }],
+                    transform: [
+                      { translateX: pan.x },
+                      { translateY: pan.y },
+                      { scale: scale },
+                    ],
                   }}
                   {...panResponder.panHandlers}
                 >
+                  {/* Imagen */}
                   <Image
                     source={{ uri: picked }}
                     style={{
                       width: (() => {
                         if (!imgMeta) return CROP_SIZE;
                         const a = imgMeta.width / imgMeta.height;
-                        return a > 1 ? imgMeta.width * (CROP_SIZE / imgMeta.height) : CROP_SIZE;
+                        return a > 1
+                          ? imgMeta.width * (CROP_SIZE / imgMeta.height)
+                          : CROP_SIZE;
                       })(),
                       height: (() => {
                         if (!imgMeta) return CROP_SIZE;
                         const a = imgMeta.width / imgMeta.height;
-                        return a > 1 ? CROP_SIZE : imgMeta.height * (CROP_SIZE / imgMeta.width);
+                        return a > 1
+                          ? CROP_SIZE
+                          : imgMeta.height * (CROP_SIZE / imgMeta.width);
                       })(),
                       resizeMode: 'cover',
                     }}
                   />
                 </Animated.View>
               )}
-              <View pointerEvents="none" style={styles.viewportBorder} />
+
+              {/* Borde del viewport */}
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.viewportBorder,
+                  { borderColor: theme.colors.primary },
+                ]}
+              />
             </View>
           </View>
 
@@ -227,29 +258,25 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     alignItems: 'center',
-    backgroundColor: '#fff',
     justifyContent: 'center',
   },
   cropContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 12,
   },
   viewport: {
     width: CROP_SIZE,
     height: CROP_SIZE,
     overflow: 'hidden',
-    backgroundColor: '#000',
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 8,
   },
   viewportBorder: {
     position: 'absolute',
-    left: 0,
     top: 0,
+    left: 0,
     width: CROP_SIZE,
     height: CROP_SIZE,
     borderWidth: 2,
-    borderColor: '#fff',
   },
 });

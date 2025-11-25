@@ -9,11 +9,11 @@ import { Post } from "../../../types/post";
 import { useAuth } from "../../../context/AuthBase";
 import WeatherBackground from "../common/WeatherBackground";
 import { reportPost, deletePost } from "../../../services/postService";
-
+import { useThemeContext } from "context/ThemeContext";
 export default function PostCard({ post }: { post: Post }) {
   const { user } = useAuth();
   const isShared = !!post.shared_post;
-
+ const theme = useThemeContext();
   const [editRequested, setEditRequested] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 const isOwn = Boolean(user && post?.author && String(post.author.id) === String(user.id));
@@ -98,15 +98,13 @@ const isOwn = Boolean(user && post?.author && String(post.author.id) === String(
 
 const styles = StyleSheet.create({
   card: {
-    width: "90%",            
-    maxWidth: 500,           
-    minHeight: 250,          
+    width: "90%",
+    maxWidth: 500,
+    minHeight: 250,
     marginVertical: 12,
     borderRadius: 18,
     overflow: "hidden",
-    backgroundColor: "#ffffff",
 
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
@@ -121,6 +119,6 @@ const styles = StyleSheet.create({
   bodyContainer: {
     paddingHorizontal: 14,
     paddingBottom: 14,
-      flex: 1,   
+    flex: 1,
   },
 });

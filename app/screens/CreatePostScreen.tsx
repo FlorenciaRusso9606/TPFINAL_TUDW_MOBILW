@@ -7,7 +7,7 @@ import { fetchWeatherByCity } from "../../services/weatherService";
 import api from "../../api/api";
 import { Platform, ToastAndroid, Alert } from "react-native";
 import { Wind } from "lucide-react-native";
-
+import { useThemeContext } from "context/ThemeContext";
 type MediaFile = {
   uri: string;
   name: string;
@@ -19,7 +19,7 @@ export default function CreatePostScreen({ navigation }: any) {
   const [contenido, setContenido] = useState("");
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const {theme} = useThemeContext()
   const [message, setMessage] = useState<{
     type: "success" | "error" | null;
     text: string | null;
@@ -231,7 +231,7 @@ accessibilityState={{ selected: attachWeather }}
       alignItems: "center",
     }}
   >
-    <Wind size={24} color="#333" />
+    <Wind size={24} color= {theme.colors.primary} />
   </Pressable>
 
   <Text style={{ fontSize: 12, opacity: 0.7 }}>

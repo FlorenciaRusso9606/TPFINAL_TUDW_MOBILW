@@ -10,10 +10,17 @@ export const darkTheme = {
 
     
     primary: "#4C6FFF",
-    onPrimary: "#0B1020",
+      outline: "#4C6FFF",
+         onPrimary: "#0B1020",
 
     secondary: "#8C82FF",
     onSecondary: "#000000",
+
+   mine: "#325b9a",
+    mineText: "#ffffff",
+
+    incoming: "#2d2d2d",
+    incomingText: "#e0e0e0",
 
     background: "#071226",
     surface: "#071226",

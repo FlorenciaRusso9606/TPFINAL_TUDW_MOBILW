@@ -18,7 +18,7 @@ const Button : React.FC<ButtonProps> = ({style, children, onPress,  disabled, ..
           style={[style, disabled && {backgroundColor: theme.colors.textSecondary}]}
           activeOpacity={0.8} {...rest}>
             {typeof children === "string" ? 
-            <Text style={{color: theme.colors.textPrimary}}>{children}</Text> : <View>{children}</View>
+            <Text style={{color: theme.colors.primary}}>{children}</Text> : <View>{children}</View>
             }
         
         </TouchableOpacity>

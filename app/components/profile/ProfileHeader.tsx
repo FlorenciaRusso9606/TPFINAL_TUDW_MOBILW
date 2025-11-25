@@ -43,21 +43,25 @@ export default function ProfileHeader({
   }, [profile.country_iso]);
 
   return (
-    <View style={styles.container}>
-      
-      {/* HEADER CON DEGRADADO */}
-      <LinearGradient
-        colors={[theme.colors.primary, theme.colors.primaryContainer]}
-        style={styles.headerGradient}
-      />
-
-      {/* BOTÓN DE AJUSTES (si es tu perfil) */}
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.colors.background },
+      ]}
+    >
+    <View
+  style={[
+    styles.headerGradient,
+    { backgroundColor: theme.colors.primary }
+  ]}
+/>
+      {/* BOTÓN AJUSTES */}
       {isOwnProfile && (
         <TouchableOpacity
           onPress={() => navigation.navigate("SettingsHome" as never)}
           style={styles.settingsButton}
         >
-          <Settings size={24} color="#fff" />
+          <Settings size={24} color={theme.colors.onPrimary} />
         </TouchableOpacity>
       )}
 
@@ -67,38 +71,73 @@ export default function ProfileHeader({
           <Avatar.Image
             source={{ uri: profile.profile_picture_url }}
             size={150}
-            style={styles.avatar}
+            style={{
+              ...styles.avatar,
+              borderColor: theme.colors.background,
+              backgroundColor: theme.colors.elevation.level1,
+            }}
           />
         ) : (
           <Avatar.Text
             size={150}
             label={profile.username.charAt(0).toUpperCase()}
-            style={styles.avatar}
+            style={{
+              ...styles.avatar,
+              borderColor: theme.colors.background,
+              backgroundColor: theme.colors.primaryContainer,
+            }}
+            color={theme.colors.onPrimaryContainer}
           />
         )}
       </View>
 
-      {/* INFORMACIÓN */}
+      {/* INFO */}
       <View style={styles.infoContainer}>
-        <Text variant="headlineSmall" style={styles.username}>
+        <Text
+          variant="headlineSmall"
+          style={[
+            styles.username,
+            { color: theme.colors.onBackground },
+          ]}
+        >
           {profile.username}
         </Text>
 
         {profile.displayname && (
-          <Text variant="titleSmall" style={styles.displayname}>
+          <Text
+            variant="titleSmall"
+            style={[
+              styles.displayname,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+          >
             {profile.displayname}
           </Text>
         )}
 
+        {/* BOTÓN EDITAR */}
         {isOwnProfile && (
           <TouchableOpacity
-            onPress={() => navigation.navigate("EditProfilePage" as never)}
-            style={styles.editButton}
+            onPress={() =>
+              navigation.navigate("EditProfilePage" as never)
+            }
+            style={[
+              styles.editButton,
+              { backgroundColor: theme.colors.surfaceVariant },
+            ]}
           >
-            <Text style={styles.editButtonText}>Editar perfil</Text>
+            <Text
+              style={{
+                ...styles.editButtonText,
+                color: theme.colors.onSurfaceVariant,
+              }}
+            >
+              Editar perfil
+            </Text>
           </TouchableOpacity>
         )}
 
+        {/* BIO */}
         <Text
           variant="bodyMedium"
           style={[
@@ -114,6 +153,7 @@ export default function ProfileHeader({
           {profile.bio || "Este usuario no tiene biografía"}
         </Text>
 
+        {/* ACCIONES SEGUIR/BLOQUEAR */}
         {!isOwnProfile && (
           <ProfileActions
             profile={profile}
@@ -124,9 +164,15 @@ export default function ProfileHeader({
           />
         )}
 
+        {/* UBICACIÓN */}
         {(profile.city || profile.country_iso) && (
           <View style={styles.locationRow}>
-            <Text style={styles.locationText}>
+            <Text
+              style={[
+                styles.locationText,
+                { color: theme.colors.onSurfaceVariant },
+              ]}
+            >
               {profile.city
                 ? `${profile.city}${profile.country_iso ? ", " : ""}`
                 : ""}
@@ -143,21 +189,39 @@ export default function ProfileHeader({
 
         {/* STATS */}
         <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{profile.posts_count ?? 0}</Text>
-            <Text style={styles.statLabel}>publicaciones</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{profile.followers_count ?? 0}</Text>
-            <Text style={styles.statLabel}>seguidores</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{profile.following_count ?? 0}</Text>
-            <Text style={styles.statLabel}>seguidos</Text>
-          </View>
+          {[
+            { label: "publicaciones", value: profile.posts_count },
+            { label: "seguidores", value: profile.followers_count },
+            { label: "seguidos", value: profile.following_count },
+          ].map((s, i) => (
+            <View key={i} style={styles.statItem}>
+              <Text
+                style={[
+                  styles.statNumber,
+                  { color: theme.colors.onBackground },
+                ]}
+              >
+                {s.value ?? 0}
+              </Text>
+              <Text
+                style={[
+                  styles.statLabel,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
+                {s.label}
+              </Text>
+            </View>
+          ))}
         </View>
 
-        <Divider style={{ marginTop: 20, width: "100%" }} />
+        <Divider
+          style={{
+            marginTop: 20,
+            width: "100%",
+            backgroundColor: theme.colors.outlineVariant,
+          }}
+        />
       </View>
     </View>
   );
@@ -187,9 +251,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   avatar: {
-    backgroundColor: "#ccc",
     borderWidth: 4,
-    borderColor: "#fff",
   },
   infoContainer: {
     marginTop: 180,
@@ -201,12 +263,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   displayname: {
-    color: "#666",
     marginTop: 4,
     marginBottom: 8,
   },
   editButton: {
-    backgroundColor: "#eee",
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 8,
@@ -224,9 +284,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
   },
-  locationText: {
-    color: "#666",
-  },
+  locationText: {},
   flagImage: {
     width: 18,
     height: 12,
@@ -247,6 +305,5 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: "#666",
   },
 });

@@ -28,7 +28,7 @@ export default function WeatherBadge({ weather, variant = "inline" }: WeatherBad
             styles.tempText,
             {
               fontSize: compact ? 12 : 14,
-              color: theme.colors.textPrimary,
+              color: theme.colors.primary,
             },
           ]}
         >

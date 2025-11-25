@@ -10,11 +10,11 @@ const ToggleButton = () =>{
     <View
       style={[
         styles.container,
-        { backgroundColor: theme.colors.background },
+        
       ]}
     >
-      <Text style={{ color: theme.colors.textPrimary }}>Modo: {darkMode ? "Oscuro" : "Claro"}</Text>
-      <Button children={darkMode? <SunMedium/> : <Moon/>} onPress={toggleDarkMode} />
+      <Text style={{ color: theme.colors.primary }}>Modo: {darkMode ? "Oscuro" : "Claro"}</Text>
+      <Button children={darkMode? <SunMedium color={theme.colors.primary} /> : <Moon color={theme.colors.primary}/> } onPress={toggleDarkMode} />
     </View>
   );
 }

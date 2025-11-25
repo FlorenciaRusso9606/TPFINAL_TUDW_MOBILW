@@ -154,12 +154,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  audioContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#222",
-  },
   modalMedia: {
     width: "100%",
     height: 300,
