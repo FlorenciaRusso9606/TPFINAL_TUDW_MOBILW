@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Alert, StyleSheet, Image } from "react-native";
 import { Text, TextInput, Button, Surface, Provider } from "react-native-paper";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as ImagePicker from "expo-image-picker";
+import ProfilePhotoPicker from "../../components/ProfilePhotoPicker";
 import api from "../../../api/api";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { editProfilSchema, ProfileData } from "../../../schemas/editProfile";
 import { useAuth } from "../../../context/AuthBase";
 import SelectInput from "app/components/SelectInput";
@@ -24,12 +25,16 @@ export default function EditProfilePage() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const { setUser } = useAuth();
   const bioValue = watch("bio") || "";
   const bioLength = bioValue.length;
   const maxBioLength = 160;
 const [showCountryDropdown, setShowCountryDropdown] = useState(false);
 const [showCityDropdown, setShowCityDropdown] = useState(false);
+
+  const profilePicture = watch("profile_picture_url") as any;
+
   const [countries, setCountries] = useState<{ label: string; value: string }[]>([]);
   const [cities, setCities] = useState<{ label: string; value: string }[]>([]);
 
@@ -84,40 +89,156 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
     fetchMe();
   }, [setValue]);
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.7,
-    });
-    if (!result.canceled) {
-      setValue("profile_picture_url", result);
-    }
-  };
 
   const onSubmit = async (data: ProfileData) => {
     if (!userId) return;
+    console.log("EditProfile: submitting", { userId, data });
+    setSending(true);
     const formData = new FormData();
     formData.append("displayname", data.displayname);
     if (data.password) formData.append("password", data.password);
     if (data.new_password) formData.append("new_password", data.new_password);
     if (data.bio) formData.append("bio", data.bio);
-    if (data.profile_picture_url) {
-      const uriParts = data.profile_picture_url.uri.split(".");
-      const fileType = uriParts[uriParts.length - 1];
-      formData.append("profile_picture_url", {
-        uri: data.profile_picture_url.uri,
-        name: `profile.${fileType}`,
-        type: `image/${fileType}`,
-      } as any);
-    }
     if (data.city) formData.append("city", data.city);
     if (data.country_iso) formData.append("country_iso", data.country_iso.toUpperCase());
 
     try {
-      const res = await api.put(`/users/${userId}`, formData, { withCredentials: true });
-      setUser(res.data.user);
-    } catch (err) {
-      console.error("Error updating profile");
+      let uri: string | undefined;
+      let fileName: string | undefined;
+      let mime: string | undefined;
+      let fileObj: any = null;
+
+      if (data.profile_picture_url) {
+        console.log("Profile picture raw value:", data.profile_picture_url);
+      }
+      if (data.profile_picture_url && data.profile_picture_url.uri) {
+        uri = data.profile_picture_url.uri as string;
+        console.log("Profile picture uri:", uri);
+        const uriNoQuery = uri.split('?')[0].split('#')[0];
+        const uriParts = uriNoQuery.split('.');
+        const fileType = (uriParts[uriParts.length - 1] || 'jpg').toLowerCase();
+        fileName = `profile.${fileType}`;
+        mime = `image/${fileType === 'jpg' ? 'jpeg' : fileType}`;
+
+        let appended = false;
+        try {
+          if (uri.startsWith('file://') || uri.startsWith('/data') || uri.startsWith('/storage')) {
+            throw new Error('Local file URI - skip fetch');
+          }
+          const fetched = await fetch(uri);
+          const blob = await fetched.blob();
+          formData.append('profile_picture_url', blob, fileName as any);
+          appended = true;
+          console.log('Appended image as blob', { fileName, mime });
+        } catch (e) {
+          console.warn('Could not fetch image as blob or skipping fetch for local file, falling back to file object append', e);
+        }
+
+        if (!appended) {
+          try {
+            fileObj = { uri, name: fileName, type: mime };
+            const fieldNames = ['profile_picture_url', 'profile_picture', 'avatar', 'image', 'file'];
+            fieldNames.forEach((field) => formData.append(field, fileObj as any));
+            console.log('Appended image as file object under multiple fields', fileObj);
+          } catch (e) {
+            console.error('Failed to append file object', e);
+          }
+        }
+      }
+
+      Alert.alert('Enviando', 'Subiendo perfil...');
+
+      if (data.profile_picture_url && data.profile_picture_url.uri) {
+        try {
+          const base = (api as any).defaults?.baseURL || '';
+          const url = `${base.replace(/\/$/, '')}/users/${userId}`;
+          const token = await AsyncStorage.getItem('token');
+          console.log('Uploading via fetch to', url);
+          let resFetch = await fetch(url, {
+            method: 'PUT',
+            headers: {
+              Accept: 'application/json',
+              Authorization: token ? `Bearer ${token}` : undefined,
+            },
+            body: formData,
+          });
+
+          let respText = await resFetch.text().catch(() => '');
+          console.log('Fetch upload status', resFetch.status);
+          console.log('Fetch response text', respText);
+
+          if (!resFetch.ok && /MulterError: Unexpected field/i.test(respText)) {
+            console.warn('Detected Multer Unexpected field, retrying with alternate field names');
+            const candidateFields = ['avatar','profile_picture','profile_picture_url','image','file','files'];
+            let succeeded = false;
+            for (const field of candidateFields) {
+              try {
+                const trialForm = new FormData();
+                if (data.displayname) trialForm.append('displayname', data.displayname);
+                if (data.password) trialForm.append('password', data.password);
+                if (data.new_password) trialForm.append('new_password', data.new_password);
+                if (data.bio) trialForm.append('bio', data.bio);
+                if (data.city) trialForm.append('city', data.city);
+                if (data.country_iso) trialForm.append('country_iso', data.country_iso.toUpperCase());
+                if (!fileObj) {
+                  fileObj = { uri, name: fileName, type: mime } as any;
+                }
+                trialForm.append(field, fileObj as any);
+
+                console.log('Retrying upload with field', field);
+                const r2 = await fetch(url, {
+                  method: 'PUT',
+                  headers: {
+                    Accept: 'application/json',
+                    Authorization: token ? `Bearer ${token}` : undefined,
+                  },
+                  body: trialForm,
+                });
+                const txt2 = await r2.text().catch(() => '');
+                console.log('Retry', field, 'status', r2.status, 'resp', txt2);
+                if (r2.ok) {
+                  let j2 = null;
+                  try { j2 = txt2 ? JSON.parse(txt2) : null; } catch {}
+                  setUser(j2?.user || j2);
+                  Alert.alert('Perfil', 'Perfil actualizado correctamente');
+                  succeeded = true;
+                  break;
+                }
+              } catch (ee) {
+                console.warn('Retry error for field', field, ee);
+              }
+            }
+            if (!succeeded) {
+              Alert.alert('Error', `Server responded ${resFetch.status}: ${respText}`);
+            }
+          } else {
+            let json: any = null;
+            try { json = respText ? JSON.parse(respText) : null; } catch {}
+            if (resFetch.ok) {
+              setUser(json?.user || json);
+              Alert.alert('Perfil', 'Perfil actualizado correctamente');
+            } else {
+              Alert.alert('Error', `Server responded ${resFetch.status}: ${respText}`);
+            }
+          }
+        } catch (e) {
+          console.error('Fetch upload error', e);
+          Alert.alert('Error', `Error subiendo perfil: ${e?.message || e}`);
+        }
+      } else {
+        const res = await api.put(`/users/${userId}`, formData, {
+          withCredentials: true,
+          timeout: 30000,
+        });
+        console.log("EditProfile: response", res && res.status);
+        setUser(res.data.user);
+        Alert.alert("Perfil", "Perfil actualizado correctamente");
+      }
+    } catch (err: any) {
+      console.error("Error updating profile", err);
+      Alert.alert("Error", err?.message || "Error actualizando perfil");
+    } finally {
+      setSending(false);
     }
   };
 useEffect(() => {
@@ -126,117 +247,142 @@ useEffect(() => {
 
   if (loading) return <Text>Cargando perfil...</Text>;
 
-  return (
-    <Provider>
-      <ScrollView style={{ flex: 1, padding: 16 }}>
+
+return (
+  <Provider>
+    <ScrollView style={{ flex: 1, padding: 16 }}>
       <Surface style={{ padding: 16, borderRadius: 8, elevation: 4 }}>
 
-  <>
-    <Text variant="headlineMedium" style={{ marginBottom: 16 }}>
-      Editar Perfil
-    </Text>
+        <>
+          <Text variant="headlineMedium" style={{ marginBottom: 16 }}>
+            Editar Perfil
+          </Text>
 
-    <Controller
-      name="country_iso"
-      control={control}
-      render={({ field }) => (
-        <SelectInput
-          label="País"
-          value={field.value}
-          onChange={(val) => {
-            field.onChange(val);
-            setValue("city", "");
-          }}
-          options={countries}
-        />
-      )}
-    />
+          <Controller
+            name="country_iso"
+            control={control}
+            render={({ field }) => (
+              <SelectInput
+                label="País"
+                value={field.value}
+                onChange={(val) => {
+                  field.onChange(val);
+                  setValue("city", "");
+                }}
+                options={countries}
+              />
+            )}
+          />
 
-    <Controller
-      name="city"
-      control={control}
-      render={({ field }) => (
-        <SelectInput
-          label="Ciudad"
-          value={field.value}
-          onChange={field.onChange}
-          options={cities}
-          disabled={!countryIso}
-        />
-      )}
-    />
+          <Controller
+            name="city"
+            control={control}
+            render={({ field }) => (
+              <SelectInput
+                label="Ciudad"
+                value={field.value}
+                onChange={field.onChange}
+                options={cities}
+                disabled={!countryIso}
+              />
+            )}
+          />
 
-    <Controller
-      name="displayname"
-      control={control}
-      render={({ field }) => (
-        <TextInput
-          label="Nombre de Usuario"
-          value={field.value}
-          onChangeText={field.onChange}
-          error={!!errors.displayname}
-          style={{ marginBottom: 12 }}
-        />
-      )}
-    />
+          <Controller
+            name="displayname"
+            control={control}
+            render={({ field }) => (
+              <TextInput
+                label="Nombre de Usuario"
+                value={field.value}
+                onChangeText={field.onChange}
+                error={!!errors.displayname}
+                style={{ marginBottom: 12 }}
+              />
+            )}
+          />
 
-    <Controller
-      name="bio"
-      control={control}
-      render={({ field }) => (
-        <TextInput
-          label="Bio"
-          value={field.value}
-          onChangeText={field.onChange}
-          multiline
-          style={{ marginBottom: 12 }}
-        />
-      )}
-    />
+          <Controller
+            name="bio"
+            control={control}
+            render={({ field }) => (
+              <TextInput
+                label="Bio"
+                value={field.value}
+                onChangeText={field.onChange}
+                multiline
+                style={{ marginBottom: 12 }}
+              />
+            )}
+          />
 
-    <Controller
-      name="password"
-      control={control}
-      render={({ field }) => (
-        <TextInput
-          label="Contraseña anterior"
-          secureTextEntry
-          value={field.value}
-          onChangeText={field.onChange}
-          style={{ marginBottom: 12 }}
-        />
-      )}
-    />
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <TextInput
+                label="Contraseña anterior"
+                secureTextEntry
+                value={field.value}
+                onChangeText={field.onChange}
+                style={{ marginBottom: 12 }}
+              />
+            )}
+          />
 
-    <Controller
-      name="new_password"
-      control={control}
-      render={({ field }) => (
-        <TextInput
-          label="Nueva contraseña"
-          secureTextEntry
-          value={field.value}
-          onChangeText={field.onChange}
-          style={{ marginBottom: 12 }}
-        />
-      )}
-    />
+          <Controller
+            name="new_password"
+            control={control}
+            render={({ field }) => (
+              <TextInput
+                label="Nueva contraseña"
+                secureTextEntry
+                value={field.value}
+                onChangeText={field.onChange}
+                style={{ marginBottom: 12 }}
+              />
+            )}
+          />
 
-    <Button mode="contained" onPress={pickImage} style={{ marginBottom: 12 }}>
-      Elegir foto de perfil
-    </Button>
+          {profilePicture?.uri && (
+            <Image source={{ uri: profilePicture.uri }} style={styles.avatar} />
+          )}
 
-    <Button mode="contained" onPress={handleSubmit(onSubmit)} disabled={isSubmitting}>
-      {isSubmitting ? "Guardando..." : "Guardar"}
-    </Button>
-  </>
+          <ProfilePhotoPicker
+            renderTrigger={(open) => (
+              <Button mode="contained" onPress={open} style={{ marginBottom: 12 }}>
+                Elegir foto de perfil
+              </Button>
+            )}
+            onComplete={(uri) => setValue("profile_picture_url", { uri })}
+          />
 
-</Surface>
+          <Button
+            mode="contained"
+            onPress={() => {
+              const data = watch();
+              onSubmit(data as ProfileData);
+            }}
+            disabled={isSubmitting || sending}
+          >
+            {isSubmitting ? "Guardando..." : "Guardar"}
+          </Button>
+        </>
 
+      </Surface>
     </ScrollView>
-    </Provider>
-    
-  );
+  </Provider>
+);
+
 }
+
+const styles = StyleSheet.create({
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 12,
+  },
+});
 
  
