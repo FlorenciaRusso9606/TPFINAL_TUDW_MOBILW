@@ -79,7 +79,6 @@ export default function PostBody({
     const isVideo = media.type === "VIDEO";
     const isAudio = media.type === "AUDIO";
 
-    // Para simplificar, en mobile podrías usar expo-av para video/audio
     if (isVideo) return null;
     if (isAudio) return null;
 
@@ -96,7 +95,6 @@ export default function PostBody({
 
   return (
     <View  style={styles.container}>
-      {/* Compartido */}
       {post.shared_post && (
         <Card style={styles.sharedCard}>
           <View style={styles.sharedHeader}>
@@ -111,18 +109,14 @@ export default function PostBody({
           <Text style={styles.sharedBody}>{post.shared_post.text}</Text>
         </Card>
       )}
-
-      {/* Texto del post */}
       <Text style={styles.postText}>{translated ?? text}</Text>
 
-      {/* Medios */}
       {medias.length > 0 && (
         <View style={styles.mediaGrid}>{medias.map((m: Media, i: number) => renderMediaItem(m, i))}</View>
       )}
 
       <Divider style={{ marginVertical: 10 }} />
 
-      {/* Botones de acción */}
       <View style={styles.actions}>
         <Reaction userId={user?.id} type="post" targetId={post.id} />
 

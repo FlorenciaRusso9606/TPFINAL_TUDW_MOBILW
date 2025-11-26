@@ -4,8 +4,7 @@ import { View, Text } from 'lucide-react-native'
 
 export default function PostsPage() {
   return (
-    <View style={{ padding: 16 }}>
-      <Text>Posts</Text>
+    <View style={{ }}>
       <PostList initialMode='all'/>
     </View>
   )

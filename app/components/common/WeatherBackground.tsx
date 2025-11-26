@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from "react-native";
 import api from "../../../api/api";
 import { weatherCache } from "../../utils/weatherCache";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { transparent } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
 
 export default function WeatherBackground({ postId, children }) {
   const [weather, setWeather] = useState<any>(null);
@@ -62,7 +63,6 @@ export default function WeatherBackground({ postId, children }) {
     );
   }
 
-  const bg = weather?.current?.is_raining ? "#8DB1D5" : "#FFE9A9";
 
-  return <View style={{ backgroundColor: bg }}>{children}</View>;
+  return <View style={{ backgroundColor: 'transparent' }}>{children}</View>;
 }

@@ -73,7 +73,6 @@ export default function AuthorHeader({
   return (
     <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
       <Card.Content style={styles.row}>
-        {/* Avatar + info */}
         <View style={styles.left}>
           <Avatar.Image
             size={56}
@@ -103,7 +102,6 @@ export default function AuthorHeader({
           </View>
         </View>
 
-        {/* Clima o spinner */}
         <View style={styles.right}>
           {loadingWeather ? (
             <ActivityIndicator animating color={theme.colors.primary} size="small" />
@@ -112,7 +110,6 @@ export default function AuthorHeader({
           )}
         </View>
 
-        {/* Acciones */}
         {actions && <View style={styles.actions}>{actions}</View>}
       </Card.Content>
     </Card>
@@ -121,7 +118,6 @@ export default function AuthorHeader({
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 8,
     borderRadius: 16,
   },
   row: {

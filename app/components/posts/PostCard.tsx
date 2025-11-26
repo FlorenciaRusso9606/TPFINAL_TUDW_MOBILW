@@ -98,13 +98,11 @@ const isOwn = Boolean(user && post?.author && String(post.author.id) === String(
 
 const styles = StyleSheet.create({
   card: {
-    width: "90%",
-    maxWidth: 500,
+    width: "100%",
     minHeight: 250,
     marginVertical: 12,
     borderRadius: 18,
     overflow: "hidden",
-
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
@@ -112,8 +110,6 @@ const styles = StyleSheet.create({
   },
 
   headerContainer: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
   },
 
   bodyContainer: {

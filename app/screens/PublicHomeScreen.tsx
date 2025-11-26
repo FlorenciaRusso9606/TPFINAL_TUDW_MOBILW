@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet } from "react-native";
-import { Text, Button, Card } from "react-native-paper";
+import { View, StyleSheet, Image } from "react-native";
+import { Text, Button } from "react-native-paper";
 import { useAuth } from "../../context/AuthBase";
 import { useNavigation } from "@react-navigation/native";
 import ToggleButton from "../components/ToggleButton";
@@ -9,18 +9,24 @@ import { useThemeContext } from "../../context/ThemeContext";
 export default function PublicHomeScreen() {
   const { user, loading } = useAuth();
   const navigation = useNavigation();
-  const { theme } = useThemeContext(); // <-- usamos tu theme
+  const { theme } = useThemeContext();
 
-  // Redirigir si hay usuario logueado
   useEffect(() => {
     if (!loading && user) {
       navigation.navigate("Feed" as never);
     }
-  }, [user, loading, navigation]);
+  }, [user, loading]);
 
   if (loading) {
     return (
-      <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: theme.colors.background,
+        }}
+      >
         <Text style={{ color: theme.colors.text }}>Cargando...</Text>
       </View>
     );
@@ -28,45 +34,69 @@ export default function PublicHomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      
+      {/* Toggle dark/light */}
       <View style={styles.themeToggle}>
         <ToggleButton />
       </View>
 
-      <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-        <Card.Content style={{ alignItems: "center" }}>
-          <Text
-            variant="titleLarge"
-            style={[styles.title, { color: theme.colors.text }]}
+      {/* LOGO */}
+      <View style={styles.logoContainer}>
+        <Image
+          source={require("../../assets/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* HERO CARD */}
+      <View
+        style={[
+          styles.heroContainer,
+          {
+            backgroundColor: theme.dark
+              ? "rgba(255,255,255,0.03)"
+              : "rgba(0,0,0,0.03)",
+          },
+        ]}
+      >
+        <Text
+          variant="headlineMedium"
+          style={[styles.heroTitle, { color: theme.colors.text }]}
+        >
+          Bienvenido a Bloop
+        </Text>
+
+        <Text
+          style={[styles.heroSubtitle, { color: theme.colors.textSecondary }]}
+        >
+          Conéctate con tus amigos y comparte momentos especiales
+        </Text>
+
+        <View style={styles.heroButtons}>
+          <Button
+            mode="contained"
+            onPress={() => navigation.navigate("Login" as never)}
+            buttonColor={theme.colors.primary}
+            textColor={theme.colors.onPrimary}
+            style={styles.heroButton}
+            contentStyle={styles.heroButtonContent}
           >
-            Bienvenido a "La Red"
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            Conéctate con tus amigos y comparte momentos especiales
-          </Text>
+            Iniciar Sesión
+          </Button>
 
-          <View style={styles.buttonContainer}>
-            <Button
-              mode="contained"
-              onPress={() => navigation.navigate("Login" as never)}
-              buttonColor={theme.colors.primary}
-              textColor={theme.colors.onPrimary}
-              style={styles.button}
-            >
-              Iniciar Sesión
-            </Button>
-
-            <Button
-              mode="contained"
-              onPress={() => navigation.navigate("Register" as never)}
-              buttonColor={theme.colors.secondary}
-              textColor={theme.colors.onSecondary}
-              style={styles.button}
-            >
-              Crear Cuenta
-            </Button>
-          </View>
-        </Card.Content>
-      </Card>
+          <Button
+            mode="contained"
+            onPress={() => navigation.navigate("Register" as never)}
+            buttonColor={theme.colors.secondary}
+            textColor={theme.colors.onSecondary}
+            style={[styles.heroButton, { marginTop: 12 }]}
+            contentStyle={styles.heroButtonContent}
+          >
+            Crear Cuenta
+          </Button>
+        </View>
+      </View>
     </View>
   );
 }
@@ -74,41 +104,65 @@ export default function PublicHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingTop: 120,
     alignItems: "center",
   },
+
   themeToggle: {
     position: "absolute",
-    top: 50,
-    right: 20,
+    top: 55,
+    right: 25,
+    zIndex: 20,
   },
-  card: {
+
+  /* LOGO */
+  logoContainer: {
+    marginBottom: 40,
+    width: "85%",
+    alignItems: "center",
+  },
+  logo: {
     width: "100%",
-    maxWidth: 400,
-    padding: 20,
-    borderRadius: 12,
-    elevation: 4,
+    height: 160,
   },
-  title: {
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  buttonContainer: {
+
+  /* HERO */
+  heroContainer: {
     width: "100%",
     marginTop: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 30,
   },
-  button: {
-    marginVertical: 6,
+
+  heroTitle: {
+    textAlign: "center",
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    marginBottom: 8,
+  },
+
+  heroSubtitle: {
+    fontSize: 16,
+    textAlign: "center",
+    opacity: 0.85,
+    lineHeight: 22,
+    marginBottom: 26,
+    paddingHorizontal: 20,
+  },
+
+  heroButtons: {
+    width: "100%",
+  },
+
+  heroButton: {
+    borderRadius: 18,
+  },
+
+  heroButtonContent: {
+    paddingVertical: 10,
   },
 });

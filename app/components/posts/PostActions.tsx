@@ -67,8 +67,6 @@ export default function PostActions({
           />
         )}
       </Menu>
-
-      {/* Report dialog */}
       <Portal>
         <Dialog
           visible={reportVisible}

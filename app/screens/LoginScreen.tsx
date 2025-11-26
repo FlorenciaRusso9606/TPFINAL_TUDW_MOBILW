@@ -46,7 +46,6 @@ export default function LoginScreen() {
       <Card style={{ padding: 20, borderRadius: 16, backgroundColor: theme.colors.surface }}>
         <Card.Title title="Iniciar Sesión" titleStyle={{ color: theme.colors.primary }} />
         <Card.Content>
-          {/* Identifier (usuario o email) */}
           <Controller
             control={control}
             name="identifier"
@@ -109,7 +108,6 @@ export default function LoginScreen() {
           <Divider style={{ marginVertical: 12 }} />
           {/*<GoogleButton />*/}
 
-          {/* Enlace a registro */}
           <View style={{ alignItems: "center", marginTop: 16 }}>
             <Text style={{ color: theme.colors.onSurfaceVariant }}>¿No tienes cuenta?</Text>
             <Button

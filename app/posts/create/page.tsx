@@ -10,12 +10,10 @@ export default function CreatePostPage() {
 
   return (
     <View style={styles.container}>
-      {/* Botón de tema */}
       <View style={styles.toggleContainer}>
         <ToggleButton />
       </View>
 
-      {/* Título */}
       <View style={styles.header}>
         <Text variant="headlineSmall">Crear Post</Text>
         <Text style={{ color: theme.colors.secondary }}>
