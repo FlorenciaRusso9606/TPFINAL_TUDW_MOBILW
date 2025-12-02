@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
 import {
   Text,
   Card,
@@ -8,22 +8,19 @@ import {
   Button,
   Divider,
 } from "react-native-paper";
-import { Save, X, Languages, Share2, MessageCircle } from "lucide-react-native";
+import { Languages, Share2, MessageCircle } from "lucide-react-native";
 import { Media } from "../../../types/post";
 import { Reaction } from "../Reaction";
 import { updatePost } from "../../../services/postService";
 import useTranslation from "../../../hooks/useTranslation";
 import { useThemeContext } from "../../../context/ThemeContext";
-import { LucideProps } from "lucide-react-native";
 import api from "../../../api/api";
-import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+
 interface PostBodyProps {
   post: any;
   description: string;
   isOwn?: boolean;
-  onDelete?: () => void;
-  onReport?: (reason: string) => void;
   editRequested?: boolean;
   clearEditRequested?: () => void;
   user?: any;
@@ -37,106 +34,101 @@ export default function PostBody({
   clearEditRequested,
   user,
 }: PostBodyProps) {
-  const {theme} = useThemeContext();
-  const [editing, setEditing] = useState(false);
-  const [text, setText] = useState(description);
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState<{ type: "error" | "success" | null; text?: string } | null>(null);
+  const { theme } = useThemeContext();
+  const navigation: any = useNavigation();
+
   const [commentCounter, setCommentCounter] = useState<number>(0);
+  const [msg, setMsg] = useState<{ type: "error" | "success" | null; text?: string } | null>(null);
 
   const { translated, sourceLang, loading: tlLoading, translate, clear } = useTranslation();
   const postId = post.id.toString();
-const navigation: any = useNavigation()
-  const browserLang = "es"; // en mobile no hay navigator.language
+
+  /** BUTTON: Show translation button only when language differs */
   const showTranslateButton = useMemo(() => {
     if (translated) return false;
-    if (sourceLang && sourceLang.toUpperCase() === browserLang.toUpperCase()) return false;
+    if (sourceLang?.toUpperCase() === "ES") return false;
     return true;
   }, [translated, sourceLang]);
 
-  const fetchComments = async () => {
-    setLoading(true);
-    try {
-      const { data } = await api.get<Comment[]>(`/comments/post/${postId}`);
-      setCommentCounter(data.length)
-    } catch (error) {
-      setLoading(false)
-    } finally {
-      setLoading(false);
-    }
-  };
+  /** COMMENTS COUNTER */
   useEffect(() => {
-    fetchComments();
+    const load = async () => {
+      try {
+        const res = await api.get(`/comments/post/${postId}`);
+        setCommentCounter(res.data.length);
+      } catch {}
+    };
+    load();
   }, []);
 
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      await updatePost(post.id, { text });
-      setEditing(false);
-      setMsg({ type: "success", text: "Post actualizado correctamente" });
-    } catch (err: any) {
-      setMsg({ type: "error", text: err.response?.data?.error?.message || err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  /** Enable editing mode if requested by parent */
   useEffect(() => {
     if (editRequested) {
-      setEditing(true);
       clearEditRequested?.();
     }
   }, [editRequested]);
 
-  const medias = post.medias ?? [];
+  /** Translate handler */
+  const handleTranslateClick = () =>
+    translate({ text: description, postId });
 
-  const renderMediaItem = (media: Media, idx: number) => {
-    const url = media?.url;
-    if (!url) return null;
-
-    const isVideo = media.type === "VIDEO";
-    const isAudio = media.type === "AUDIO";
-
-    if (isVideo) return null;
-    if (isAudio) return null;
-
-    return (
-      <Card key={idx} style={styles.mediaCard}>
-        <Card.Cover source={{ uri: url }} resizeMode="contain" />
-      </Card>
-    );
-  };
-
-  const handleTranslateClick = async () => {
-    await translate({ text: description, postId });
-  };
+  const medias: Media[] = post.medias ?? [];
 
   return (
-    <View  style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+
       {post.shared_post && (
-        <Card style={styles.sharedCard}>
+        <Card
+          style={[
+            styles.sharedCard,
+            { borderLeftColor: theme.colors.primary }
+          ]}
+        >
           <View style={styles.sharedHeader}>
-            <Share2 color={theme.colors.primary} size={18} />
-            <Text variant="bodyMedium" style={styles.sharedText}>
+            <Share2 size={16} color={theme.colors.primary} />
+            <Text style={[styles.sharedText, { color: theme.colors.onSurface }]}>
               Compartido de{" "}
-              <Text style={{ fontWeight: "bold" }}>
-                {post.shared_post.author?.username || "usuario desconocido"}
+              <Text style={{ fontWeight: "700", color: theme.colors.primary }}>
+                {post.shared_post.author?.username || "usuario"}
               </Text>
             </Text>
           </View>
-          <Text style={styles.sharedBody}>{post.shared_post.text}</Text>
+
+          <Text style={[styles.sharedBody, { color: theme.colors.onSurfaceVariant }]}>
+            {post.shared_post.text}
+          </Text>
         </Card>
       )}
-      <Text style={styles.postText}>{translated ?? text}</Text>
+
+      <Text style={[styles.postText, { color: theme.colors.onSurface }]}>
+        {translated ?? description}
+      </Text>
 
       {medias.length > 0 && (
-        <View style={styles.mediaGrid}>{medias.map((m: Media, i: number) => renderMediaItem(m, i))}</View>
+        <View style={styles.gallery}>
+          {medias.map((media, idx) => (
+            <Image
+              key={idx}
+              source={{ uri: media.url }}
+              style={[
+                styles.mediaItem,
+                {
+                  borderColor: theme.colors.outline,
+                  backgroundColor: theme.colors.surfaceVariant,
+                },
+              ]}
+            />
+          ))}
+        </View>
       )}
 
-      <Divider style={{ marginVertical: 10 }} />
+      <Divider
+        style={{
+          backgroundColor: theme.colors.outlineVariant,
+        }}
+      />
 
-      <View style={styles.actions}>
+      <View style={styles.actionsRow}>
         <Reaction userId={user?.id} type="post" targetId={post.id} />
 
         {showTranslateButton && (
@@ -145,7 +137,7 @@ const navigation: any = useNavigation()
               tlLoading ? (
                 <ActivityIndicator size={18} />
               ) : (
-                <Languages color={theme.colors.primary} {...({} as LucideProps)} />
+                <Languages size={20} color={theme.colors.primary} />
               )
             }
             onPress={handleTranslateClick}
@@ -153,37 +145,30 @@ const navigation: any = useNavigation()
         )}
 
         {translated && (
-          <View>
-            <IconButton icon={() => <Languages />} />
-            <Button
-              mode="outlined"
-              onPress={() => clear()}
-              style={{ height: 32 }}
-              labelStyle={{ textTransform: "none", fontSize: 12 }}
-            >
-              Ver original
-            </Button>
-          </View>
+          <Button
+            mode="outlined"
+            onPress={clear}
+            style={styles.originalButton}
+            textColor={theme.colors.primary}
+          >
+            Ver original
+          </Button>
         )}
-       {/* Comentarios */}
-<TouchableOpacity
-  style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-  onPress={() => navigation.navigate("PostDetail" , { postId: postId })}
->
-  <MessageCircle size={20} color={theme.colors.onSurfaceVariant} />
-  <Text style={{ color: theme.colors.onSurfaceVariant }}>
-    {commentCounter}
-  </Text>
-</TouchableOpacity>
 
+        <TouchableOpacity
+          style={styles.commentButton}
+          onPress={() => navigation.navigate("PostDetail", { postId })}
+        >
+          <MessageCircle size={20} color={theme.colors.onSurfaceVariant} />
+          <Text style={{ color: theme.colors.onSurfaceVariant }}>{commentCounter}</Text>
+        </TouchableOpacity>
       </View>
-
-      {/* Mensajes */}
       {msg && (
         <Text
           style={{
+            marginTop: 6,
             color: msg.type === "error" ? theme.colors.error : theme.colors.primary,
-            marginTop: 8,
+            fontSize: 13,
           }}
         >
           {msg.text}
@@ -196,43 +181,68 @@ const navigation: any = useNavigation()
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    padding: 8,
+    borderRadius: 20,
+    padding: 14,
+    gap: 12,
   },
+
   sharedCard: {
     borderLeftWidth: 4,
-    borderLeftColor: "#1976d2",
-    marginVertical: 10,
     padding: 10,
   },
+
   sharedHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
+    gap: 6,
+    marginBottom: 4,
   },
+
   sharedText: {
-    marginLeft: 6,
+    fontSize: 14,
     flexShrink: 1,
   },
+
   sharedBody: {
-    fontStyle: "italic",
+    fontSize: 14,
     opacity: 0.8,
   },
+
   postText: {
     fontSize: 16,
     lineHeight: 22,
-    marginVertical: 8,
+    marginBottom: 4,
   },
-  mediaGrid: {
+
+  gallery: {
+    flexDirection: "column",
     gap: 8,
   },
-  mediaCard: {
-    borderRadius: 10,
-    overflow: "hidden",
+
+  mediaItem: {
+    width: "100%",
+    height: 250,
+    resizeMode: "cover",
+    borderRadius: 16,
+    borderWidth: 1,
   },
-  actions: {
+
+  actionsRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    marginTop: 8,
+    gap: 10,
+  },
+
+  originalButton: {
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+
+  commentButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginLeft: "auto",
   },
 });

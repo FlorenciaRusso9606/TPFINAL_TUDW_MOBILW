@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Text, Button } from "react-native-paper";
-import { FlatList, View, StyleSheet } from "react-native";
+import { Text } from "react-native-paper";
+import { FlatList, View, StyleSheet, TouchableOpacity } from "react-native";
 import ToggleButton from "../components/ToggleButton";
 import { usePosts } from "../../hooks/usePosts";
 import PostCard from "../components/posts/PostCard";
+import { useThemeContext } from "../../context/ThemeContext";
 
 export default function FeedScreen() {
   const [mode, setMode] = useState<"all" | "following">("all");
   const [hydrated, setHydrated] = useState(false);
 
-  const { posts, loading, error } = usePosts(mode);
+  const { theme } = useThemeContext();
 
+  const { posts, loading } = usePosts(mode);
 
   useEffect(() => {
     async function loadMode() {
@@ -28,41 +30,92 @@ export default function FeedScreen() {
 
   if (!hydrated) return null;
 
-
   return (
-    <View style={{ flex: 1, paddingTop: 48, paddingHorizontal: 16 }}>
+    <View
+      style={{
+        flex: 1,
+        paddingTop: 48,
+        paddingHorizontal: 16,
+        backgroundColor: theme.colors.background,
+      }}
+    >
       <View style={styles.topRight}>
         <ToggleButton />
       </View>
 
-      <Text variant="headlineMedium" style={styles.title}>Mi Feed</Text>
+      <Text
+        variant="headlineMedium"
+        style={[
+          styles.title,
+          { color: theme.colors.text }
+        ]}
+      >
+        Mi Feed
+      </Text>
 
-      <View style={styles.toggleContainer}>
-        <View style={styles.buttonGroup}>
-          <Button
-            mode={mode === "all" ? "contained" : "outlined"}
-            onPress={() => setMode("all")}
-          >
-            Todos
-          </Button>
+      {/* TABS */}
+      <View style={styles.tabsWrapper}>
+        <View style={styles.tabsRow}>
+          <TouchableOpacity onPress={() => setMode("all")} style={styles.tabButton}>
+            <Text
+              style={[
+                styles.tabText,
+                { color: theme.colors.textSecondary },
+                mode === "all" && { color: theme.colors.primary }
+              ]}
+            >
+              Todos
+            </Text>
+          </TouchableOpacity>
 
-          <Button
-            mode={mode === "following" ? "contained" : "outlined"}
-            onPress={() => setMode("following")}
-          >
-            Seguidos
-          </Button>
+          <TouchableOpacity onPress={() => setMode("following")} style={styles.tabButton}>
+            <Text
+              style={[
+                styles.tabText,
+                { color: theme.colors.textSecondary },
+                mode === "following" && { color: theme.colors.primary }
+              ]}
+            >
+              Seguidos
+            </Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Línea inferior */}
+        <View
+          style={[
+            styles.bottomLine,
+            { backgroundColor: theme.colors.border }
+          ]}
+        />
+
+        {/* Indicador */}
+        <View
+          style={[
+            styles.indicator,
+            { backgroundColor: theme.colors.primary },
+            mode === "all" ? styles.indicatorLeft : styles.indicatorRight,
+          ]}
+        />
       </View>
 
-  
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => <PostCard post={item} />}
         contentContainerStyle={{ paddingBottom: 40 }}
-        ListEmptyComponent={<Text>No hay posts todavía</Text>}
-        ListFooterComponent={loading ? <Text>Cargando...</Text> : null}
+        ListEmptyComponent={
+          <Text style={{ color: theme.colors.textSecondary }}>
+            No hay posts todavía
+          </Text>
+        }
+        ListFooterComponent={
+          loading ? (
+            <Text style={{ color: theme.colors.textSecondary }}>
+              Cargando...
+            </Text>
+          ) : null
+        }
       />
     </View>
   );
@@ -75,18 +128,47 @@ const styles = StyleSheet.create({
     right: 16,
     zIndex: 10,
   },
+
   title: {
     marginBottom: 24,
     textAlign: "center",
     fontWeight: "600",
   },
-  toggleContainer: {
-    width: "100%",
-    gap: 16,
+
+  tabsWrapper: {
+    marginBottom: 16,
+    position: "relative",
   },
-  buttonGroup: {
+
+  tabsRow: {
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
   },
+
+  tabButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+
+  tabText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+
+  bottomLine: {
+    width: "100%",
+    height: 2,
+    marginTop: 4,
+  },
+
+  indicator: {
+    position: "absolute",
+    bottom: 0,
+    height: 3,
+    width: "50%",
+    borderRadius: 2,
+  },
+
+  indicatorLeft: { left: 0 },
+  indicatorRight: { right: 0 },
 });

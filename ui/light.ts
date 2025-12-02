@@ -8,15 +8,15 @@ export const lightTheme = {
   colors: {
     ...PaperLight.colors,
 
-    
-    primary: "#C2185B",
-     outline: "#C2185B",
+
+    primary: "#6D609E",
+    outline: "#7265a0ff",
     onPrimary: "#FFFFFF",
 
-    secondary: "#6C5CE7",
+    secondary: "#6c5ce7ff",
     onSecondary: "#FFFFFF",
-    
-mine: "#cfe9ff",
+
+    mine: "#cfe9ff",
     mineText: "#003b73",
 
     incoming: "#eeeeee",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Text, IconButton, Surface, useTheme } from "react-native-paper";
 import AuthorHeader from "./AuthorHeader";
@@ -9,33 +9,36 @@ import { X } from "lucide-react-native";
 
 export default function SharedPost({ post }: any) {
   const theme = useTheme();
-  const sharedBy = post.author; // Usuario que compartió
-  const originalPost = post.shared_post; // Post original
+
+  const sharedBy = post?.author;
+  const originalPost = post?.shared_post;
   const originalAuthor = originalPost?.author;
-  const [hasShared, setHasShared] = useState(true); // Simula que ya fue compartido
 
   if (!originalPost || !originalAuthor) return null;
 
   return (
-    <Surface style={styles.container} elevation={1}>
-      {/*  Header: autor que compartió */}
+    <Surface style={[styles.container]} elevation={1}>
       <View style={styles.header}>
         <Text
           variant="bodyMedium"
-          style={{ color: theme.colors.onSurfaceVariant, fontStyle: "italic" }}
+          style={[
+            styles.sharedByText,
+            { color: theme.colors.onSurfaceVariant },
+          ]}
         >
-          Compartido por {sharedBy.displayname || sharedBy.username}
+          Compartido por {sharedBy?.displayname || sharedBy?.username || "Usuario"}
         </Text>
 
         <IconButton
           icon={() => (
-            <X  size={18} color={theme.colors.onSurfaceVariant} />
+            <X size={18} color={theme.colors.onSurfaceVariant} />
           )}
-          accessibilityLabel="Reposteo"
+          accessibilityLabel="Cerrar reposteo"
           style={styles.icon}
+          onPress={() => {}}
         />
       </View>
-      {/* Post original */}
+
       <Surface
         style={[
           styles.originalPost,
@@ -50,16 +53,18 @@ export default function SharedPost({ post }: any) {
               onEdit={() => {}}
               onDelete={() => {}}
               onReport={async (reason: string) => {
-                
                 await reportPost(originalPost.id, reason);
-
               }}
               loading={false}
               isOwn={false}
             />
           }
         />
-        <PostBody post={originalPost} description={originalPost.text} />
+
+        <PostBody
+          post={originalPost}
+          description={originalPost.text}
+        />
       </Surface>
     </Surface>
   );
@@ -74,14 +79,18 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    justifyContent: "space-between",
     marginBottom: 6,
+  },
+  sharedByText: {
+    fontStyle: "italic",
   },
   icon: {
     margin: 0,
   },
   originalPost: {
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 12,
+    gap: 6,
   },
 });

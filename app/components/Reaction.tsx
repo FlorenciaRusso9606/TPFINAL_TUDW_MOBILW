@@ -30,7 +30,6 @@ export const Reaction: React.FC<PostReactionProps> = ({ targetId, type }) => {
   const [loading, setLoading] = useState(false);
   const { theme } = useThemeContext();
 
-  // Toggle Like
   const toggleReaction = async () => {
     try {
       const endpoint =

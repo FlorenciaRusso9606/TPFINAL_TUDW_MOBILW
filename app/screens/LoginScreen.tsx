@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Alert } from "react-native";
+import { View, Alert, StyleSheet, Image } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TextInput, Button, HelperText, Text, Card, Divider } from "react-native-paper";
@@ -10,6 +10,7 @@ import api from "../../api/api";
 import { loginSchema, loginData } from "../../schemas/loginSchema";
 import { GoogleButton } from "../components/GoogleButton";
 import { useThemeContext } from "../../context/ThemeContext";
+import ToggleButton from "../components/ToggleButton";
 
 type NavigationProps = { navigate: (screen: string) => void };
 
@@ -42,85 +43,140 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", padding: 20, backgroundColor: theme.colors.background }}>
-      <Card style={{ padding: 20, borderRadius: 16, backgroundColor: theme.colors.surface }}>
-        <Card.Title title="Iniciar Sesión" titleStyle={{ color: theme.colors.primary }} />
-        <Card.Content>
-          <Controller
-            control={control}
-            name="identifier"
-           render={({ field: { onChange, onBlur, value } }: { field: { onChange: (value: string) => void; onBlur: () => void; value: string } }) => (
-              <View>
-                <TextInput
-                  label="Email o usuario"
-                  mode="outlined"
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                  autoCapitalize="none"
-                  left={<TextInput.Icon icon="account" />}
-                  error={!!errors.identifier}
-                  style={{ marginBottom: 4 }}
-                />
-                <HelperText type="error" visible={!!errors.identifier}>
-                  {errors.identifier?.message}
-                </HelperText>
-              </View>
-            )}
-          />
+    <View style={{
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 24,
+      backgroundColor: theme.colors.background
+    }}>
+      <View style={styles.themeToggle}>
+        <ToggleButton />
+      </View>
 
-          {/* Password */}
-          <Controller
-            control={control}
-            name="password"
-             render={({ field: { onChange, onBlur, value } }: { field: { onChange: (value: string) => void; onBlur: () => void; value: string } }) => (
-              <View>
-                <TextInput
-                  label="Contraseña"
-                  mode="outlined"
-                  secureTextEntry
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                  left={<TextInput.Icon icon="lock" />}
-                  error={!!errors.password}
-                  style={{ marginBottom: 4 }}
-                />
-                <HelperText type="error" visible={!!errors.password}>
-                  {errors.password?.message}
-                </HelperText>
-              </View>
-            )}
-          />
+      <View style={styles.logoContainer}>
+        <Image
+          source={require("../../assets/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+      <View
+        style={{
+          padding: 20,
+          borderRadius: 16,
+          backgroundColor: theme.colors.surface,
+          width: "100%",
+          maxWidth: 400,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 22,
+            fontWeight: "bold",
+            color: theme.colors.primary,
+            marginBottom: 16,
+            textAlign: "center",
+          }}
+        >
+          Iniciar Sesión
+        </Text>
 
-          {/* Botón de login */}
+        <Controller
+          control={control}
+          name="identifier"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View>
+              <TextInput
+                label="Email o usuario"
+                mode="outlined"
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                autoCapitalize="none"
+                left={<TextInput.Icon icon="account" />}
+                error={!!errors.identifier}
+                style={{ marginBottom: 4 }}
+              />
+              <HelperText type="error" visible={!!errors.identifier}>
+                {errors.identifier?.message}
+              </HelperText>
+            </View>
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View>
+              <TextInput
+                label="Contraseña"
+                mode="outlined"
+                secureTextEntry
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                left={<TextInput.Icon icon="lock" />}
+                error={!!errors.password}
+                style={{ marginBottom: 4 }}
+              />
+              <HelperText type="error" visible={!!errors.password}>
+                {errors.password?.message}
+              </HelperText>
+            </View>
+          )}
+        />
+
+        <Button
+          mode="contained"
+          onPress={handleSubmit(onSubmit)}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          style={{ marginTop: 12, borderRadius: 8 }}
+        >
+          {isSubmitting ? "Ingresando..." : "Ingresar"}
+        </Button>
+
+        <Divider style={{ marginVertical: 12 }} />
+
+        <View style={{ alignItems: "center", marginTop: 16 }}>
+          <Text style={{ color: theme.colors.onSurfaceVariant }}>¿No tienes cuenta?</Text>
           <Button
-            mode="contained"
-            onPress={handleSubmit(onSubmit)}
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            style={{ marginTop: 12, borderRadius: 8 }}
+            onPress={() => navigation.navigate("Register")}
+            compact
+            mode="text"
+            textColor={theme.colors.primary}
           >
-            {isSubmitting ? "Ingresando..." : "Ingresar"}
+            Regístrate aquí
           </Button>
-
-          {/* Divider y botón de Google */}
-          <Divider style={{ marginVertical: 12 }} />
-          {/*<GoogleButton />*/}
-
-          <View style={{ alignItems: "center", marginTop: 16 }}>
-            <Text style={{ color: theme.colors.onSurfaceVariant }}>¿No tienes cuenta?</Text>
-            <Button
-              onPress={() => navigation.navigate("Register")}
-              compact
-              mode="text"
-              textColor={theme.colors.primary}
-            >
-              Regístrate aquí
-            </Button>
-          </View>
-        </Card.Content>
-      </Card>
+        </View>
+      </View>
     </View>
   );
 }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 120,
+    alignItems: "center",
+  },
+
+  themeToggle: {
+    position: "absolute",
+    top: 55,
+    right: 25,
+    zIndex: 20,
+  },
+
+  logoContainer: {
+    marginBottom: 40,
+    width: "85%",
+    alignItems: "center",
+  },
+  logo: {
+    width: "100%",
+    height: 160,
+  },
+})

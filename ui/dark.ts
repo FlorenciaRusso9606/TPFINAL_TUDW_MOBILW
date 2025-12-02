@@ -8,15 +8,15 @@ export const darkTheme = {
   colors: {
     ...PaperDark.colors,
 
-    
+
     primary: "#4C6FFF",
-      outline: "#4C6FFF",
-         onPrimary: "#0B1020",
+    outline: "#4C6FFF",
+    onPrimary: "#0B1020",
 
     secondary: "#8C82FF",
     onSecondary: "#000000",
 
-   mine: "#325b9a",
+    mine: "#325b9a",
     mineText: "#ffffff",
 
     incoming: "#2d2d2d",
