@@ -17,14 +17,11 @@ export function AuthProviderBase({ children }: { children: ReactNode; onLogout?:
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("📡 AuthProviderBase: iniciando fetchUser");
     const fetchUser = async () => {
       try {
         const res = await api.get<User>("/auth/me", { withCredentials: true });
-        console.log(" Usuario obtenido:", res.data);
         setUser(res.data);
       } catch (err) {
-        console.log(" Error obteniendo usuario:", err);
         setUser(null);
       } finally {
         setLoading(false);
@@ -36,13 +33,10 @@ export function AuthProviderBase({ children }: { children: ReactNode; onLogout?:
   const logout = async () => {
     try {
       await api.post("/auth/logout", {}, { withCredentials: true });
-      console.log("👋 Logout exitoso");
       setUser(null);
         
-      Alert.alert("Sesión cerrada", "👋 Hasta pronto")
             
     } catch {
-      console.log("⚠️ Error en logout");
       setUser(null);
     }
   };

@@ -67,7 +67,6 @@ export default function ProfilePhotoPicker({ onComplete, renderTrigger }: { onCo
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return Alert.alert('Permisos', 'Se necesitan permisos para acceder a las imágenes.');
 
-    console.log('ProfilePhotoPicker: pickImage start');
     Alert.alert('Seleccionar imagen', 'Abriendo selector de imágenes...');
 
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -104,7 +103,6 @@ export default function ProfilePhotoPicker({ onComplete, renderTrigger }: { onCo
       return;
     }
 
-    console.log('ProfilePhotoPicker: handleSave start');
     Alert.alert('Recortando', 'Procesando imagen...');
 
     const viewportSize = CROP_SIZE;
@@ -162,7 +160,6 @@ export default function ProfilePhotoPicker({ onComplete, renderTrigger }: { onCo
       setModalVisible(false);
       setPicked(null);
       setImgMeta(null);
-      console.log('ProfilePhotoPicker: crop result', result.uri);
       Alert.alert('Listo', 'Imagen recortada');
       onComplete(result.uri);
     } catch (e) {

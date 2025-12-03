@@ -21,25 +21,16 @@ const PostDetail = () => {
   const { user } = useAuth();
 
  useEffect(() => {
-  console.log("📌 PARAMS RECIBIDOS:", route.params);
-  console.log("📌 ID:", postId);
 
   const fetchPost = async () => {
-    console.log("📡 Fetching:", `/posts/${postId}`);
 
     try {
       const response = await api.get<{ data: Post }>(`/posts/${postId}`);
 
-      console.log("📥 RESPONSE COMPLETA:", response);
-      console.log("📘 POST DATA:", response.data);
 
       setPost(response.data.data);
     } catch (error: any) {
-      console.log("❌ ERROR FETCH POST:");
-      console.log("👉 Mensaje:", error.message);
-      console.log("👉 Error.response:", error.response);
-      console.log("👉 Error.request:", error.request);
-      console.log("👉 Error.config:", error.config);
+  
     } finally {
       setLoading(false);
     }
@@ -48,7 +39,6 @@ const PostDetail = () => {
   if (postId) {
     fetchPost();
   } else {
-    console.log("⚠️ ID no encontrado en route.params");
     setLoading(false);
   }
 }, [postId]);
@@ -80,7 +70,6 @@ const PostDetail = () => {
       console.error(err);
     }
   };
-console.log("📌 POST STATE:", post);
   return (
       <View style={styles.container}>
         <AuthorHeader

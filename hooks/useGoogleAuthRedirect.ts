@@ -11,13 +11,11 @@ export function useGoogleAuthRedirect() {
   useEffect(() => {
     const handleDeepLink = async (event: Linking.EventType) => {
       const url = event.url;
-      console.log("Deep link recibido:", url);
 
       const parsed = Linking.parse(url);
       const token = parsed.queryParams?.token;
 
       if (token) {
-        console.log("Token recibido:", token);
 
         await AsyncStorage.setItem("token", token);
 

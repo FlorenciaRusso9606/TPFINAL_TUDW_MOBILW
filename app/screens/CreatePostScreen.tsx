@@ -8,6 +8,8 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native-paper";
+import { Picker } from "@react-native-picker/picker";
+
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../context/AuthBase";
 import { fetchWeatherByCity } from "../../services/weatherService";
@@ -30,6 +32,8 @@ export default function CreatePostScreen({ navigation }: any) {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(false);
   const { theme } = useThemeContext();
+  const [visibility, setVisibility] = useState("followers");
+
   const [message, setMessage] = useState<{
     type: "success" | "error" | null;
     text: string | null;
@@ -120,7 +124,9 @@ export default function CreatePostScreen({ navigation }: any) {
     setLoading(true);
 
     try {
+
       const formData = new FormData();
+      formData.append("visibility", visibility);
 
       formData.append("text", contenido);
 
@@ -172,7 +178,7 @@ export default function CreatePostScreen({ navigation }: any) {
             value={contenido}
             onChangeText={setContenido}
             multiline
-            numberOfLines={1}
+            numberOfLines={6}
             style={{ marginBottom: 12 }}
           />
           <Button
@@ -305,6 +311,28 @@ export default function CreatePostScreen({ navigation }: any) {
               {weatherData.current.weather?.[0]?.description}
             </Text>
           )}
+<View style={{display: "flex", justifyContent:"space-between", marginTop: 3}}>
+  <View style={{ marginTop: 16, marginBottom: 16 }}>
+  <Text style={{ marginBottom: 8 }}>Visibilidad</Text>
+
+  <View
+    style={{
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: "#ccc",
+      overflow: "hidden",
+    }}
+  >
+    <Picker
+      selectedValue={visibility}
+      onValueChange={(value) => setVisibility(value)}
+    >
+      <Picker.Item label="Público" value="public" />
+      <Picker.Item label="Solo seguidores" value="followers" />
+      <Picker.Item label="Solo yo" value="intimate" />
+    </Picker>
+  </View>
+</View>
 
           <Button
             mode="contained"
@@ -314,6 +342,7 @@ export default function CreatePostScreen({ navigation }: any) {
           >
             {loading ? <ActivityIndicator /> : "Publicar"}
           </Button>
+</View>
 
           <Button
             mode="text"

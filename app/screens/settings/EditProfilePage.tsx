@@ -92,7 +92,6 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
 
   const onSubmit = async (data: ProfileData) => {
     if (!userId) return;
-    console.log("EditProfile: submitting", { userId, data });
     setSending(true);
     const formData = new FormData();
     formData.append("displayname", data.displayname);
@@ -109,11 +108,9 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
       let fileObj: any = null;
 
       if (data.profile_picture_url) {
-        console.log("Profile picture raw value:", data.profile_picture_url);
       }
       if (data.profile_picture_url && data.profile_picture_url.uri) {
         uri = data.profile_picture_url.uri as string;
-        console.log("Profile picture uri:", uri);
         const uriNoQuery = uri.split('?')[0].split('#')[0];
         const uriParts = uriNoQuery.split('.');
         const fileType = (uriParts[uriParts.length - 1] || 'jpg').toLowerCase();
@@ -129,7 +126,6 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
           const blob = await fetched.blob();
           formData.append('profile_picture_url', blob, fileName as any);
           appended = true;
-          console.log('Appended image as blob', { fileName, mime });
         } catch (e) {
           console.warn('Could not fetch image as blob or skipping fetch for local file, falling back to file object append', e);
         }
@@ -139,7 +135,6 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
             fileObj = { uri, name: fileName, type: mime };
             const fieldNames = ['profile_picture_url', 'profile_picture', 'avatar', 'image', 'file'];
             fieldNames.forEach((field) => formData.append(field, fileObj as any));
-            console.log('Appended image as file object under multiple fields', fileObj);
           } catch (e) {
             console.error('Failed to append file object', e);
           }
@@ -153,7 +148,6 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
           const base = (api as any).defaults?.baseURL || '';
           const url = `${base.replace(/\/$/, '')}/users/${userId}`;
           const token = await AsyncStorage.getItem('token');
-          console.log('Uploading via fetch to', url);
           let resFetch = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -164,8 +158,7 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
           });
 
           let respText = await resFetch.text().catch(() => '');
-          console.log('Fetch upload status', resFetch.status);
-          console.log('Fetch response text', respText);
+         
 
           if (!resFetch.ok && /MulterError: Unexpected field/i.test(respText)) {
             console.warn('Detected Multer Unexpected field, retrying with alternate field names');
@@ -185,7 +178,6 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
                 }
                 trialForm.append(field, fileObj as any);
 
-                console.log('Retrying upload with field', field);
                 const r2 = await fetch(url, {
                   method: 'PUT',
                   headers: {
@@ -195,7 +187,6 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
                   body: trialForm,
                 });
                 const txt2 = await r2.text().catch(() => '');
-                console.log('Retry', field, 'status', r2.status, 'resp', txt2);
                 if (r2.ok) {
                   let j2 = null;
                   try { j2 = txt2 ? JSON.parse(txt2) : null; } catch {}
@@ -230,7 +221,6 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
           withCredentials: true,
           timeout: 30000,
         });
-        console.log("EditProfile: response", res && res.status);
         setUser(res.data.user);
         Alert.alert("Perfil", "Perfil actualizado correctamente");
       }
@@ -242,7 +232,6 @@ const [showCityDropdown, setShowCityDropdown] = useState(false);
     }
   };
 useEffect(() => {
-  console.log("CIUDADES ACTUALIZADAS:", cities);
 }, [cities]);
 
   if (loading) return <Text>Cargando perfil...</Text>;
