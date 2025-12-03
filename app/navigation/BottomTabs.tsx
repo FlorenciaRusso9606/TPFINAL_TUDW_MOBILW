@@ -70,10 +70,9 @@ export default function BottomTabs() {
 
       {/* MENSAJES */}
       <Tab.Screen
-        name="Messages"
+        name="Mensajes"
         component={MessagesStack}
         options={{
-          tabBarLabel: "Mensajes",
           tabBarIcon: ({ color, size }) => (
             <MessageSquare size={size} color={color} />
           ),

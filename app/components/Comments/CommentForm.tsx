@@ -15,6 +15,7 @@ import { useThemeContext } from "../../../context/ThemeContext";
 import EmojiModal from "react-native-emoji-modal";
 import { useState } from "react";
 import { Smile } from "lucide-react-native";
+
 interface Props {
   postId: string | number;
   parentId?: string | number | null;
@@ -25,13 +26,15 @@ interface Props {
 }
 
 const CommentForm: React.FC<Props> = ({ onSubmit, parentId }) => {
-  const { control, handleSubmit, reset, formState } = useForm<CommentFormData>({
-    resolver: zodResolver(commentSchema),
-  });
-  const { user } = useAuth();
+  const { control, handleSubmit, reset, formState } =
+    useForm<CommentFormData>({
+      resolver: zodResolver(commentSchema),
+    });
 
+  const { user } = useAuth();
   const { errors, isSubmitting } = formState;
   const { theme } = useThemeContext();
+
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleFormSubmit = async (data: CommentFormData) => {
@@ -68,29 +71,43 @@ const CommentForm: React.FC<Props> = ({ onSubmit, parentId }) => {
             control={control}
             render={({ field }) => (
               <>
-                <TextInput
-                  {...field}
-                  value={field.value}
-                  mode="outlined"
-                  placeholder="Escribe un comentario..."
-                  multiline
-                  numberOfLines={1}
-                  style={styles.textInput}
-                  error={!!errors.text}
-                  onChangeText={field.onChange}
-                />
+                {/* INPUT */}
+                <View style={{ position: "relative" }}>
+                  <TextInput
+                    {...field}
+                    value={field.value}
+                    mode="outlined"
+                    placeholder="Escribe un comentario..."
+                    multiline
+                    numberOfLines={1}
+                    style={[
+                      styles.textInput,
+                      {
+                        backgroundColor: theme.dark
+                          ? "#252525"
+                          : "#f5f5f5",
+                        borderColor: errors.text
+                          ? theme.colors.error
+                          : "transparent",
+                      },
+                    ]}
+                    onChangeText={field.onChange}
+                    error={!!errors.text}
+                  />
 
-                {/* BOTÓN EMOJIS */}
-                <Button
-                  mode="outlined"
-                  onPress={() => setShowEmojiPicker(true)}
-                  style={{ marginBottom: 12 }}
-                >
-                  <Smile />
-                </Button>
+                  {/* BOTÓN EMOJI */}
+                  <Pressable
+                    onPress={() => setShowEmojiPicker(true)}
+                    style={styles.emojiButton}
+                  >
+                    <Smile
+                      size={22}
+                      color={theme.colors.primary}
+                    />
+                  </Pressable>
+                </View>
 
-                {/* MODAL EMOJIS */}
-
+                {/* MODAL EMOJI */}
                 <Modal
                   visible={showEmojiPicker}
                   transparent
@@ -98,37 +115,27 @@ const CommentForm: React.FC<Props> = ({ onSubmit, parentId }) => {
                   onRequestClose={() => setShowEmojiPicker(false)}
                 >
                   <Pressable
-                    style={{
-                      flex: 1,
-                      backgroundColor: "rgba(0,0,0,0.3)",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
+                    style={styles.modalOverlay}
                     onPress={() => setShowEmojiPicker(false)}
                   >
-                              <Pressable
-                  style={{
-        backgroundColor: theme.dark ? "#1c1c1e" : "#fff",
-        padding: 12,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: theme.dark ? "#333" : "#eee",
-        width: "100%",
-        maxHeight: "60%",
-        shadowColor: "#000",
-        shadowOpacity: 0.25,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 10,
-        elevation: 6,
-      }}
+                    <Pressable
+                      style={[
+                        styles.modalContent,
+                        {
+                          backgroundColor: theme.dark
+                            ? "#1c1c1e"
+                            : "#fff",
+                        },
+                      ]}
                       onPress={(e) => e.stopPropagation()}
                     >
                       <EmojiModal
                         onEmojiSelected={(emoji) => {
-                          field.onChange(field.value + emoji);
+                          field.onChange((field.value ?? "" )+ emoji);
                           setShowEmojiPicker(false);
                         }}
                         columns={8}
+                        modalStyle={{ backgroundColor: "transparent" }}
                       />
                     </Pressable>
                   </Pressable>
@@ -149,6 +156,7 @@ const CommentForm: React.FC<Props> = ({ onSubmit, parentId }) => {
             </View>
           )}
 
+          {/* BOTÓN PUBLICAR */}
           <View style={styles.submitRow}>
             <Button
               mode="contained"
@@ -175,9 +183,14 @@ export default CommentForm;
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
-    padding: 8,
-    marginVertical: 6,
+    borderRadius: 18,
+    padding: 12,
+    marginVertical: 8,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
   },
   row: {
     flexDirection: "row",
@@ -186,11 +199,25 @@ const styles = StyleSheet.create({
   inputContainer: {
     flex: 1,
     marginLeft: 10,
+    position: "relative",
   },
   textInput: {
-    borderRadius: 12,
-    fontSize: 14,
-    minHeight: 60,
+    borderRadius: 16,
+    fontSize: 15,
+    minHeight: 50,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingRight: 45, 
+    borderWidth: 1,
+    flex: 1,
+  },
+  emojiButton: {
+    position: "absolute",
+    right: 12,
+    bottom: 12,
+    zIndex: 20,
+    elevation: 20,
+    padding: 4,
   },
   errorContainer: {
     marginTop: 2,
@@ -204,12 +231,30 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   submitButton: {
-    borderRadius: 20,
-    paddingHorizontal: 12,
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 4,
+    elevation: 3,
   },
   submitLabel: {
-    textTransform: "none",
+    fontSize: 15,
     fontWeight: "600",
-    fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalContent: {
+    padding: 14,
+    borderRadius: 20,
+    width: "100%",
+    maxHeight: "60%",
+    shadowColor: "#000",
+    shadowOpacity: 0.35,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 20,
+    elevation: 10,
   },
 });

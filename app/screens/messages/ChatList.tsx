@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { getConversations, getMe } from '../../chat/services/messageService';
 import { useIsFocused } from "@react-navigation/native";
 
@@ -9,35 +9,42 @@ export default function ChatList({ navigation }: any) {
 
   const isFocused = useIsFocused();
 
-  // Obtener mi usuario UNA sola vez
+  // Obtener mi usuario una sola vez
   useEffect(() => {
     getMe().then(user => {
       setMyId(user?.id || null);
     });
   }, []);
 
-  // Fetch conversations SOLO cuando vuelve al foco
+  // Fetch de conversaciones solo cuando vuelve al foco
   useEffect(() => {
     if (isFocused) {
-      getConversations().then(r => {
-        setConvs(r || []);
-      });
+      getConversations().then(r => setConvs(r || []));
     }
   }, [isFocused]);
 
-  if (!myId) return <Text>Cargando usuario...</Text>;
+  if (!myId) return <Text style={styles.loading}>Cargando usuario...</Text>;
 
   return (
-    <View style={{ flex: 1, padding: 12 }}>
+    <View style={styles.container}>
+      
+      {/* Botón simple de nuevo chat */}
       <TouchableOpacity
-        onPress={() => navigation.navigate("SearchConversation", { currentUserId: myId })}
+        style={styles.newChatButton}
+        onPress={() =>
+          navigation.navigate("SearchConversation", { currentUserId: myId })
+        }
       >
-        <Text>Nuevo chat</Text>
+        <Text style={styles.newChatText}>＋ Nuevo chat</Text>
       </TouchableOpacity>
 
       <FlatList
         data={convs}
         keyExtractor={item => String(item.id)}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        ListEmptyComponent={
+          <Text style={styles.empty}>No tenés chats todavía</Text>
+        }
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>
@@ -47,10 +54,13 @@ export default function ChatList({ navigation }: any) {
               })
             }
           >
-            <View style={{ padding: 12, borderBottomWidth: 1 }}>
-              <Text>{item.otherUser.displayname || item.otherUser.username}</Text>
-              <Text style={{ fontSize: 12, color: "#666" }}>
-                {item.lastMessage?.text}
+            <View style={styles.row}>
+              <Text style={styles.name}>
+                {item.otherUser.displayname || item.otherUser.username}
+              </Text>
+
+              <Text style={styles.lastMessage}>
+                {item.lastMessage?.text || "Sin mensajes"}
               </Text>
             </View>
           </TouchableOpacity>
@@ -59,3 +69,53 @@ export default function ChatList({ navigation }: any) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 14,
+    backgroundColor: "#fff",
+  },
+
+  loading: {
+    marginTop: 30,
+    textAlign: "center",
+    fontSize: 16,
+  },
+
+  newChatButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    marginBottom: 14,
+  },
+
+  newChatText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2b7cff",
+  },
+
+  row: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+  },
+
+  name: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+
+  lastMessage: {
+    fontSize: 13,
+    color: "#666",
+  },
+
+  empty: {
+    marginTop: 40,
+    textAlign: "center",
+    fontSize: 14,
+    color: "#888",
+  },
+});

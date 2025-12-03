@@ -10,7 +10,7 @@ export default function MessagesStack() {
       id={"messagesStack" as never}
       screenOptions={{ headerShown: true }}
     >
-      <Stack.Screen name="ChatList" component={ChatList} options={{ title: 'Mensajes' }} />
+      <Stack.Screen name="ChatList" component={ChatList} options={{ title: 'Tus Mensajes' }} />
       <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ title: 'Chat' }} />
       <Stack.Screen
         name="SearchConversation"

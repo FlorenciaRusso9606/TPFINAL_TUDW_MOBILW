@@ -133,20 +133,20 @@ export const CommentItem: React.FC<CommentItemProps> = ({
             onPress={() => setShowReply((prev) => !prev)}
           />
 
-          {user?.id === comment.author_id && (
-            <View>
-              <IconButton
-                icon={() => <Edit2 size={16} color={theme.colors.primary} {...({} as LucideProps)} />}
-                size={16}
-                onPress={() => setIsEditing(true)}
-              />
-              <IconButton
-                icon={() => <Trash2 size={16} color={theme.colors.error} {...({} as LucideProps)} />}
-                size={16}
-                onPress={handleDelete}
-              />
-            </View>
-          )}
+        {user?.id === comment.author_id && (
+  <View style={styles.editGroup}>
+    <IconButton
+      icon={() => <Edit2 size={16} color={theme.colors.primary} {...({} as LucideProps)} />}
+      size={16}
+      onPress={() => setIsEditing(true)}
+    />
+    <IconButton
+      icon={() => <Trash2 size={16} color={theme.colors.error} {...({} as LucideProps)} />}
+      size={16}
+      onPress={handleDelete}
+    />
+  </View>
+)}
         </View>
 
         {showReply && (
@@ -187,39 +187,54 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    padding: 10,
+    padding: 12,
     borderBottomWidth: 1,
-    borderRadius: 8,
+    borderRadius: 10,
+    backgroundColor: "transparent",
+    elevation: 0,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  headerText: {
-    flexDirection: "column",
-  },
-  text: {
-    marginTop: 6,
-    fontSize: 14,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 6,
-  },
- icons: {
+editGroup: {
   flexDirection: "row",
   alignItems: "center",
   gap: 8,
-  marginTop: 4,
 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
 
+  headerText: {
+    marginLeft: 10,
+    flexDirection: "column",
+  },
+
+  text: {
+    marginTop: 4,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: 10,
+    gap: 10,
+  },
+
+ icons: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "flex-start",
+  marginTop: 10,
+  columnGap: 10,   },
 
   replies: {
     marginTop: 8,
-    marginLeft: 16,
-    paddingLeft: 8,
+    marginLeft: 20,
+    paddingLeft: 10,
     borderLeftWidth: 2,
+    borderRadius: 4,
   },
 });
+
