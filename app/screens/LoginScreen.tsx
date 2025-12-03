@@ -11,13 +11,15 @@ import { loginSchema, loginData } from "../../schemas/loginSchema";
 import { GoogleButton } from "../components/GoogleButton";
 import { useThemeContext } from "../../context/ThemeContext";
 import ToggleButton from "../components/ToggleButton";
-
+import { Eye, EyeClosed } from "lucide-react-native";
+import { useState } from "react";
 type NavigationProps = { navigate: (screen: string) => void };
 
 export default function LoginScreen() {
   const { theme } = useThemeContext();
   const navigation = useNavigation<NavigationProps>();
   const { setUser } = useAuth();
+  const [showPassword, setShowPassword] = useState<boolean>(false)
 
   const {
     control,
@@ -105,7 +107,7 @@ export default function LoginScreen() {
           )}
         />
 
-        <Controller
+       <Controller
           control={control}
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
@@ -113,13 +115,25 @@ export default function LoginScreen() {
               <TextInput
                 label="Contraseña"
                 mode="outlined"
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
                 left={<TextInput.Icon icon="lock" />}
                 error={!!errors.password}
                 style={{ marginBottom: 4 }}
+                 right={
+          <TextInput.Icon
+            onPress={() => setShowPassword((prev) => !prev)}
+            icon={() =>
+              showPassword ? (
+                <EyeClosed size={22} color={theme.colors.onSurfaceVariant} />
+              ) : (
+                <Eye size={22} color={theme.colors.onSurfaceVariant} />
+              )
+            }
+          />
+        }
               />
               <HelperText type="error" visible={!!errors.password}>
                 {errors.password?.message}

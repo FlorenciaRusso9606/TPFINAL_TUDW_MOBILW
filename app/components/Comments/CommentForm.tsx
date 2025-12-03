@@ -1,17 +1,27 @@
-import { View, StyleSheet } from "react-native";
-import { Avatar, Button, TextInput, ActivityIndicator, Card } from "react-native-paper";
+import { View, StyleSheet, Modal, Pressable } from "react-native";
+import {
+  Avatar,
+  Button,
+  TextInput,
+  ActivityIndicator,
+  Card,
+} from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { commentSchema, CommentFormData } from "../../../schemas/commentSchema";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../../../context/AuthBase";
 import { useThemeContext } from "../../../context/ThemeContext";
-
-
+import EmojiModal from "react-native-emoji-modal";
+import { useState } from "react";
+import { Smile } from "lucide-react-native";
 interface Props {
   postId: string | number;
   parentId?: string | number | null;
-  onSubmit: (data: CommentFormData, parentId?: string | number | null) => Promise<void>;
+  onSubmit: (
+    data: CommentFormData,
+    parentId?: string | number | null
+  ) => Promise<void>;
 }
 
 const CommentForm: React.FC<Props> = ({ onSubmit, parentId }) => {
@@ -21,7 +31,8 @@ const CommentForm: React.FC<Props> = ({ onSubmit, parentId }) => {
   const { user } = useAuth();
 
   const { errors, isSubmitting } = formState;
-  const {theme} = useThemeContext();
+  const { theme } = useThemeContext();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleFormSubmit = async (data: CommentFormData) => {
     try {
@@ -56,16 +67,73 @@ const CommentForm: React.FC<Props> = ({ onSubmit, parentId }) => {
             name="text"
             control={control}
             render={({ field }) => (
-              <TextInput
-                {...field}
-                mode="outlined"
-                placeholder="Escribe un comentario..."
-                multiline
-                dense
-                style={styles.textInput}
-                error={!!errors.text}
-                onChangeText={field.onChange}
-              />
+              <>
+                <TextInput
+                  {...field}
+                  value={field.value}
+                  mode="outlined"
+                  placeholder="Escribe un comentario..."
+                  multiline
+                  numberOfLines={1}
+                  style={styles.textInput}
+                  error={!!errors.text}
+                  onChangeText={field.onChange}
+                />
+
+                {/* BOTÓN EMOJIS */}
+                <Button
+                  mode="outlined"
+                  onPress={() => setShowEmojiPicker(true)}
+                  style={{ marginBottom: 12 }}
+                >
+                  <Smile />
+                </Button>
+
+                {/* MODAL EMOJIS */}
+
+                <Modal
+                  visible={showEmojiPicker}
+                  transparent
+                  animationType="fade"
+                  onRequestClose={() => setShowEmojiPicker(false)}
+                >
+                  <Pressable
+                    style={{
+                      flex: 1,
+                      backgroundColor: "rgba(0,0,0,0.3)",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                    onPress={() => setShowEmojiPicker(false)}
+                  >
+                              <Pressable
+                  style={{
+        backgroundColor: theme.dark ? "#1c1c1e" : "#fff",
+        padding: 12,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: theme.dark ? "#333" : "#eee",
+        width: "100%",
+        maxHeight: "60%",
+        shadowColor: "#000",
+        shadowOpacity: 0.25,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 10,
+        elevation: 6,
+      }}
+                      onPress={(e) => e.stopPropagation()}
+                    >
+                      <EmojiModal
+                        onEmojiSelected={(emoji) => {
+                          field.onChange(field.value + emoji);
+                          setShowEmojiPicker(false);
+                        }}
+                        columns={8}
+                      />
+                    </Pressable>
+                  </Pressable>
+                </Modal>
+              </>
             )}
           />
 

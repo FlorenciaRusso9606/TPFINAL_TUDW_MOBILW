@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Alert, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 import { Heart, Share2 } from "lucide-react-native";
 import api from "../../api/api";
 import { useThemeContext } from "../../context/ThemeContext";
-import Button from "./Button";
+import ModalBase from "./common/Modal";
+import { Avatar } from "react-native-paper";
 
 interface PostReactionProps {
-  userId?: string;
   targetId: string;
   type: "post" | "comment";
 }
@@ -23,13 +30,23 @@ interface ShareStatusResponse {
   shared: boolean;
 }
 
+interface UserLike {
+  id: string;
+  username: string;
+  displayname: string;
+  profile_picture_url?: string;
+}
+
 export const Reaction: React.FC<PostReactionProps> = ({ targetId, type }) => {
   const [liked, setLiked] = useState(false);
   const [shared, setShared] = useState(false);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showLikes, setShowLikes] = useState(false);
+  const [users, setUsers] = useState<UserLike[]>([]);
   const { theme } = useThemeContext();
 
+  // --- LIKE ---
   const toggleReaction = async () => {
     try {
       const endpoint =
@@ -37,11 +54,7 @@ export const Reaction: React.FC<PostReactionProps> = ({ targetId, type }) => {
           ? `/reactions/post/${targetId}`
           : `/reactions/comment/${targetId}`;
 
-      const result = await api.post<ToggleReactionResponse>(
-        endpoint,
-        {},
-        { withCredentials: true }
-      );
+      const result = await api.post<ToggleReactionResponse>(endpoint, {}, { withCredentials: true });
 
       setLiked(result.data.liked);
       fetchCount();
@@ -50,7 +63,6 @@ export const Reaction: React.FC<PostReactionProps> = ({ targetId, type }) => {
     }
   };
 
-  // Obtener cantidad de likes
   const fetchCount = async () => {
     try {
       const endpoint =
@@ -65,7 +77,6 @@ export const Reaction: React.FC<PostReactionProps> = ({ targetId, type }) => {
     }
   };
 
-  // Saber si el usuario ya dio like
   const fetchUserLiked = async () => {
     try {
       const endpoint =
@@ -83,7 +94,7 @@ export const Reaction: React.FC<PostReactionProps> = ({ targetId, type }) => {
     }
   };
 
-  // Saber si el usuario ya compartió el post
+  // --- SHARES ---
   const fetchUserShared = async () => {
     try {
       const result = await api.get<ShareStatusResponse>(
@@ -96,7 +107,6 @@ export const Reaction: React.FC<PostReactionProps> = ({ targetId, type }) => {
     }
   };
 
-  // Compartir post
   const handleShare = async () => {
     try {
       setLoading(true);
@@ -110,6 +120,21 @@ export const Reaction: React.FC<PostReactionProps> = ({ targetId, type }) => {
     }
   };
 
+  // --- USERS WHO LIKED ---
+  const fetchUsersLiked = async () => {
+    try {
+      const endpoint =
+        type === "post"
+          ? `/reactions/post/${targetId}/users`
+          : `/reactions/comment/${targetId}/users`;
+
+      const result = await api.get<{ users: UserLike[] }>(endpoint);
+      setUsers(result.data.users);
+    } catch {
+      setUsers([]);
+    }
+  };
+
   useEffect(() => {
     fetchUserLiked();
     fetchCount();
@@ -118,42 +143,84 @@ export const Reaction: React.FC<PostReactionProps> = ({ targetId, type }) => {
 
   return (
     <View style={styles.container}>
-      {/* ❤️ Botón de like */}
+
+      {/* --- CANTIDAD DE LIKES --- */}
+      {count > 0 && (
+        <TouchableOpacity
+          onPress={() => {
+            fetchUsersLiked();
+            setShowLikes(true);
+          }}
+          style={styles.likeWrapper}
+        >
+          <Text style={[styles.likeCount, { color: theme.colors.text }]}>
+            {count}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* ❤️ LIKE BUTTON */}
       <TouchableOpacity style={styles.reactionButton} onPress={toggleReaction}>
         <Heart
           color={liked ? "red" : theme.colors.textSecondary}
           fill={liked ? "red" : "none"}
           size={22}
         />
-        {count > 0 && <Text style={styles.likeCount}>{count}</Text>}
       </TouchableOpacity>
 
-      {/* 🔁 Botón de compartir */}
+      {/* 🔁 SHARE */}
       {type === "post" && (
         <TouchableOpacity
-        style={styles.reactionButton}
-        onPress={handleShare}
-        disabled={loading || shared}
-      >
-        {loading ? (
-          <ActivityIndicator size="small" color={theme.colors.primary} />
-        ) : (
-          <Share2
-            color={shared ? theme.colors.primary : theme.colors.textSecondary}
-            fill={shared ? theme.colors.primary : "none"}
-            size={22}
-          />
-        )}
-        <Text
-          style={[
-            styles.shareText,
-            { color: shared ? theme.colors.primary : theme.colors.textSecondary },
-          ]}
+          style={styles.reactionButton}
+          onPress={handleShare}
+          disabled={loading || shared}
         >
-          {shared ? "Compartido" : "Compartir"}
-        </Text>
-      </TouchableOpacity>
+          {loading ? (
+            <ActivityIndicator size="small" />
+          ) : (
+            <Share2
+              color={shared ? theme.colors.primary : theme.colors.textSecondary}
+              fill={shared ? theme.colors.primary : "none"}
+              size={22}
+            />
+          )}
+          <Text
+            style={[
+              styles.shareText,
+              { color: shared ? theme.colors.primary : theme.colors.textSecondary },
+            ]}
+          >
+            {shared ? "Compartido" : "Compartir"}
+          </Text>
+        </TouchableOpacity>
       )}
+
+      {/* MODAL DE USUARIOS QUE DIERON LIKE */}
+      <ModalBase
+        title="Likes del post"
+        open={showLikes}
+        onClose={() => setShowLikes(false)}
+        cancelText="Cerrar"
+      >
+        <View style={{ gap: 12 }}>
+          {users.map((u) => (
+            <TouchableOpacity key={u.id} style={styles.userRow}>
+              <Avatar.Image
+                size={48}
+                source={
+                  u.profile_picture_url
+                    ? { uri: u.profile_picture_url }
+                    : require("../../assets/default-avatar-icon.jpg")
+                }
+              />
+              <View>
+                <Text style={styles.username}>{u.username}</Text>
+                <Text style={styles.displayname}>{u.displayname}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ModalBase>
     </View>
   );
 };
@@ -164,15 +231,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
   },
+  likeWrapper: {
+    padding: 4,
+  },
+  likeCount: {
+    fontSize: 14,
+  },
   reactionButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
   },
-  likeCount: {
-    fontSize: 14,
-  },
   shareText: {
     fontSize: 14,
+  },
+  userRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 8,
+  },
+  username: {
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  displayname: {
+    color: "#666",
   },
 });

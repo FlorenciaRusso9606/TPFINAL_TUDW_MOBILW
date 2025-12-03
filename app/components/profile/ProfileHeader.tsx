@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { Text, Avatar, Divider, useTheme } from "react-native-paper";
 import ProfileActions from "./ProfileActions";
+import { Settings } from "lucide-react-native";
 import api from "../../../api/api";
-
+import { useNavigation } from "@react-navigation/native";
 import { User, BlockStatus, FollowStatus } from "../../../types/user";
 
 interface Props {
@@ -25,9 +26,9 @@ export default function ProfileHeader({
 }: Props) {
   const theme = useTheme();
   const [flag, setFlag] = useState<string | null>(null);
-
-  // Estados para la imagen
-  const [imageOk, setImageOk] = useState<boolean | null>(null); // null = aún no probado
+  const [imageOk, setImageOk] = useState<boolean | null>(null);
+  const navigation = useNavigation()
+  // Traer bandera
   useEffect(() => {
     async function fetchFlag() {
       if (!profile.country_iso) return;
@@ -41,6 +42,7 @@ export default function ProfileHeader({
     fetchFlag();
   }, [profile.country_iso]);
 
+  // Check de imagen
   useEffect(() => {
     setImageOk(null);
     const url = profile.profile_picture_url;
@@ -48,17 +50,10 @@ export default function ProfileHeader({
       setImageOk(false);
       return;
     }
-    console.log("Comprobando imagen de perfil:", url);
 
     Image.prefetch(url)
-      .then((res) => {
-        console.log("Image.prefetch result:", res);
-        setImageOk(true);
-      })
-      .catch((err) => {
-        console.warn("Image.prefetch fallo:", err);
-        setImageOk(false);
-      });
+      .then(() => setImageOk(true))
+      .catch(() => setImageOk(false));
   }, [profile.profile_picture_url]);
 
   const initials = (profile.displayname || profile.username || "")
@@ -70,7 +65,23 @@ export default function ProfileHeader({
 
   return (
     <View style={styles.container}>
-      <View style={[styles.headerHero, { backgroundColor: theme.colors.primary }]} />
+      
+      {/* HEADER HERO */}
+      <View
+        style={[styles.headerHero, { backgroundColor: theme.colors.primary }]}
+      />
+
+      {/* BOTÓN DE AJUSTES (si es tu perfil) */}
+      {isOwnProfile && (
+        <TouchableOpacity
+          onPress={() => navigation.navigate("SettingsHome" as never)}
+          style={styles.settingsButton}
+        >
+          <Settings size={24} color={theme.colors.onPrimary} />
+        </TouchableOpacity>
+      )}
+
+      {/* AVATAR */}
       <View style={styles.avatarWrapper}>
         {imageOk === true && profile.profile_picture_url ? (
           <Avatar.Image
@@ -78,17 +89,17 @@ export default function ProfileHeader({
             source={{ uri: profile.profile_picture_url }}
             style={styles.avatar}
           />
-        ) : imageOk === false ? (
-          <Avatar.Text size={150} label={initials || "U"} style={styles.avatar} />
         ) : (
           <Avatar.Text size={150} label={initials || "U"} style={styles.avatar} />
         )}
       </View>
 
+      {/* CONTENIDO */}
       <View style={styles.content}>
         <Text style={[styles.username, { color: theme.colors.onBackground }]}>
           {profile.username}
         </Text>
+
         {profile.displayname && (
           <Text
             style={[
@@ -100,6 +111,28 @@ export default function ProfileHeader({
           </Text>
         )}
 
+        {/* BOTÓN EDITAR PERFIL */}
+        {isOwnProfile && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate("EditProfilePage" as never)}
+            style={[
+              styles.editButton,
+              { backgroundColor: theme.colors.surfaceVariant },
+            ]}
+          >
+            <Text
+              style={{
+                color: theme.colors.onSurfaceVariant,
+                fontSize: 14,
+                fontWeight: "600",
+              }}
+            >
+              Editar perfil
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* BIO */}
         <Text
           style={[
             styles.bio,
@@ -114,6 +147,7 @@ export default function ProfileHeader({
           {profile.bio || "Este usuario no tiene biografía"}
         </Text>
 
+        {/* ACTIONS SEGUIR/BLOQUEAR */}
         {!isOwnProfile && (
           <View style={styles.actionsWrapper}>
             <ProfileActions
@@ -126,6 +160,7 @@ export default function ProfileHeader({
           </View>
         )}
 
+        {/* UBICACIÓN */}
         {(profile.city || profile.country_iso) && (
           <View style={styles.locationRow}>
             <Text
@@ -166,7 +201,6 @@ export default function ProfileHeader({
   );
 }
 
-// styles (igual que los tuyos)
 const styles = StyleSheet.create({
   container: {
     width: "100%",
@@ -178,11 +212,19 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     opacity: 0.98,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
   },
+
+  /* --- BOTÓN AJUSTES --- */
+  settingsButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    zIndex: 20,
+    padding: 10,
+    borderRadius: 100,
+    backgroundColor: "rgba(0,0,0,0.15)",
+  },
+
   avatarWrapper: {
     position: "absolute",
     top: 100,
@@ -193,9 +235,6 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
     backgroundColor: "#eee",
     elevation: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
   },
   content: {
     marginTop: 120,
@@ -204,6 +243,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: "center",
   },
+
   username: {
     fontSize: 32,
     fontWeight: "800",
@@ -212,6 +252,16 @@ const styles = StyleSheet.create({
     fontSize: 17,
     marginTop: 3,
   },
+
+  /* --- BOTÓN EDITAR PERFIL --- */
+  editButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: "center",
+  },
+
   bio: {
     marginTop: 10,
     fontSize: 15,
@@ -219,23 +269,22 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     maxWidth: "90%",
   },
-  actionsWrapper: {
-    marginTop: 18,
-  },
+
+  actionsWrapper: { marginTop: 18 },
+
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 12,
   },
-  locationText: {
-    fontSize: 15,
-  },
+  locationText: { fontSize: 15 },
   flag: {
     width: 20,
     height: 14,
     marginLeft: 6,
     borderRadius: 3,
   },
+
   statsCard: {
     width: "92%",
     marginTop: 22,
@@ -243,25 +292,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: "#fff",
     elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
   },
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-evenly",
-    width: "100%",
   },
-  statBox: {
-    alignItems: "center",
-  },
-  statNumber: {
-    fontSize: 22,
-    fontWeight: "800",
-  },
-  statLabel: {
-    fontSize: 13,
-    opacity: 0.7,
-    marginTop: 2,
-  },
+  statBox: { alignItems: "center" },
+  statNumber: { fontSize: 22, fontWeight: "800" },
+  statLabel: { fontSize: 13, opacity: 0.7, marginTop: 2 },
 });

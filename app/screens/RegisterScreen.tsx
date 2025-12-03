@@ -8,10 +8,15 @@ import api from "../../api/api";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeContext } from "../../context/ThemeContext";
 import ToggleButton from "../components/ToggleButton";
+import { GoogleButton } from "../components/GoogleButton";
+import { Eye, EyeClosed } from "lucide-react-native";
+import { useState } from "react";
 
 export default function Register() {
   const { theme } = useThemeContext();
   const navigation = useNavigation();
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
 
   const {
     control,
@@ -22,8 +27,10 @@ export default function Register() {
   });
 
   const onSubmit = async (data: RegisterData) => {
+         const { confirmPassword, ...rest } = data; 
+
     try {
-      await api.post("/auth/register", data);
+      await api.post("/auth/register", rest);
       Alert.alert("Registro exitoso 🎉", "Revisa tu correo para confirmar tu cuenta.");
       navigation.navigate("CheckEmail" as never);
     } catch (err) {
@@ -157,13 +164,25 @@ export default function Register() {
               <TextInput
                 label="Contraseña"
                 mode="outlined"
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
                 left={<TextInput.Icon icon="lock" />}
                 error={!!errors.password}
                 style={{ marginBottom: 4 }}
+                 right={
+          <TextInput.Icon
+            onPress={() => setShowPassword((prev) => !prev)}
+            icon={() =>
+              showPassword ? (
+                <EyeClosed size={22} color={theme.colors.onSurfaceVariant} />
+              ) : (
+                <Eye size={22} color={theme.colors.onSurfaceVariant} />
+              )
+            }
+          />
+        }
               />
               <HelperText type="error" visible={!!errors.password}>
                 {errors.password?.message}
@@ -172,22 +191,59 @@ export default function Register() {
           )}
         />
 
-        {/* Botón principal */}
-        <Button
+    <Controller
+            control={control}
+            name="confirmPassword"
+             render={({ field: { onChange, onBlur, value } }: { field: { onChange: (value: string) => void; onBlur: () => void; value: string } }) => (
+              <View>
+                <TextInput
+                  label="Repetir contraseña"
+                  mode="outlined"
+                  secureTextEntry={!showConfirmPassword}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  left={<TextInput.Icon icon="lock" />}
+                   right={
+          <TextInput.Icon
+            onPress={() => setShowConfirmPassword((prev) => !prev)}
+            icon={() =>
+              showConfirmPassword ? (
+                <EyeClosed size={22} color={theme.colors.onSurfaceVariant} />
+              ) : (
+                <Eye size={22} color={theme.colors.onSurfaceVariant} />
+              )
+            }
+          />
+        }
+                  error={!!errors.confirmPassword}
+                  style={{ marginBottom: 4 }}
+                />
+                <HelperText type="error" visible={!!errors.confirmPassword}>
+                  {errors.confirmPassword?.message}
+                </HelperText>
+              </View>
+            )}
+          />
+
+        <Divider style={{ marginVertical: 12 }} />
+   <Button
           mode="contained"
           onPress={handleSubmit(onSubmit)}
           loading={isSubmitting}
           disabled={isSubmitting}
           style={{ marginTop: 12, borderRadius: 8 }}
         >
-          {isSubmitting ? "Registrando..." : "Registrarse"}
+          {isSubmitting ? "Ingresando..." : "Ingresar"}
         </Button>
-
-        <Divider style={{ marginVertical: 12 }} />
-
         {/* Link login */}
         <View style={{ alignItems: "center", marginTop: 16 }}>
           <Text style={{ color: theme.colors.onSurfaceVariant }}>¿Ya tienes una cuenta?</Text>
+          
+
+        
+  
+          {/* Botón principal */}
           <Button
             onPress={() => navigation.navigate("Login" as never)}
             compact
